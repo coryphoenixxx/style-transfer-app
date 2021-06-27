@@ -171,9 +171,6 @@ def eval_func(content_url, style_url):
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    # if not os.path.exists('./output'):
-    #     os.mkdir('./output')
-
     decoder = decoder
     transform = Transform(in_planes=512)
     vgg = vgg
