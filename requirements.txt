@@ -13,8 +13,6 @@ python-dateutil==1.5
 pytz==2021.1
 requests==2.25.1
 sqlparse==0.4.1
-torch==1.9.0
-torchvision==0.10.0
 typing-extensions==3.10.0.0
 urllib3==1.26.6
 whitenoise==5.2.0
