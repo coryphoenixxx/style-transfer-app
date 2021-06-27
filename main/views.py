@@ -36,10 +36,10 @@ def index(request):
 
         eval_func(content_url, style_url)
         stylized_url = './images/stylized.jpg'
-        return render(request, "main/index.html", {'content_url': content_url,
-                                                   'style_url': style_url,
-                                                   'stylized_url': stylized_url})
+        return render(request, "index.html", {'content_url': content_url,
+                                              'style_url': style_url,
+                                              'stylized_url': stylized_url})
 
-    return render(request, "main/index.html", {'content_url': content_url,
-                                               'style_url': style_url
-                                               })
+    return render(request, "index.html", {'content_url': content_url,
+                                          'style_url': style_url
+                                          })
