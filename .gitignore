@@ -193,3 +193,4 @@ venv/Scripts/python.exe
 venv/Scripts/pythonw.exe
 venv/Scripts/sqlformat.exe
 venv/pyvenv.cfg
+staticfiles/
