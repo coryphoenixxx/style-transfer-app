@@ -7,7 +7,6 @@ import os
 def index(request):
     content_url = './images/default_content.jpg'
     style_url = './images/default_style.jpg'
-    stylized_url = './images/stylized.jpg'
 
     try:
         os.remove('./images/content.jpg')
@@ -36,6 +35,7 @@ def index(request):
             style_url = '.' + fs.url(style_name)
 
         eval_func(content_url, style_url)
+        stylized_url = './images/stylized.jpg'
         return render(request, "main/index.html", {'content_url': content_url,
                                                    'style_url': style_url,
                                                    'stylized_url': stylized_url})

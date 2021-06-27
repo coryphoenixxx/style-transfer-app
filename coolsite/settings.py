@@ -17,8 +17,9 @@ import django_heroku
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-MEDIA_URL = '/images/'
 MEDIA_ROOT = BASE_DIR / 'images'
+MEDIA_URL = '/images/'
+
 
 
 # Quick-start development settings - unsuitable for production
@@ -28,7 +29,7 @@ MEDIA_ROOT = BASE_DIR / 'images'
 SECRET_KEY = 'django-insecure--mukdmoh()q(04sg&(7vs$1go)n_tq***y)(=8vdqe8#el4iqe'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
