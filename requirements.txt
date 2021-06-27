@@ -12,5 +12,6 @@ requests==2.25.1
 sqlparse==0.4.1
 typing-extensions==3.10.0.0
 urllib3==1.26.6
-https://download.pytorch.org/whl/lts/1.8/cpu/torch-1.8.1%2Bcpu-cp36-cp36m-linux_x86_64.whl
-https://download.pytorch.org/whl/lts/1.8/cpu/torchvision-0.9.1%2Bcpu-cp36-cp36m-linux_x86_64.whl
+https://download.pytorch.org/whl/cpu/torch-1.1.0-cp36-cp36m-linux_x86_64.whl
+torchvision==0.2.2
+fastai==1.0.52
