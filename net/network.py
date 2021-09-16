@@ -120,13 +120,14 @@ vgg = nn.Sequential(
     nn.ReLU()  # relu5-4
 )
 
+
 class SANet(nn.Module):
     def __init__(self, in_planes):
         super(SANet, self).__init__()
         self.f = nn.Conv2d(in_planes, in_planes, (1, 1))
         self.g = nn.Conv2d(in_planes, in_planes, (1, 1))
         self.h = nn.Conv2d(in_planes, in_planes, (1, 1))
-        self.sm = nn.Softmax(dim = -1)
+        self.sm = nn.Softmax(dim=-1)
         self.out_conv = nn.Conv2d(in_planes, in_planes, (1, 1))
 
     def forward(self, content, style):
@@ -190,7 +191,7 @@ class Net(nn.Module):
         return results[1:]
 
     def calc_content_loss(self, input, target, norm=False):
-        if (norm == False):
+        if norm == False:
             return self.mse_loss(input, target)
         else:
             return self.mse_loss(mean_variance_norm(input), mean_variance_norm(target))
