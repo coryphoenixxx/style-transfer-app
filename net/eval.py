@@ -1,9 +1,10 @@
-import argparse
 import torch
 import torch.nn as nn
 from PIL import Image
 from torchvision import transforms
 from torchvision.utils import save_image
+
+from time import time
 
 
 def eval_func(content_url, style_url):
@@ -160,12 +161,8 @@ def eval_func(content_url, style_url):
         transform = transforms.Compose(transform_list)
         return transform
 
-
-    # Advanced options
-
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    decoder = decoder
     transform = Transform(in_planes=512)
     vgg = vgg
 
@@ -173,8 +170,8 @@ def eval_func(content_url, style_url):
     transform.eval()
     vgg.eval()
 
-    decoder.load_state_dict(torch.load('./state_dicts/decoder_iter_820000.pth'))
-    transform.load_state_dict(torch.load('./state_dicts/transformer_iter_820000.pth'))
+    decoder.load_state_dict(torch.load('./state_dicts/decoder_iter_500000.pth'))
+    transform.load_state_dict(torch.load('./state_dicts/transformer_iter_500000.pth'))
     vgg.load_state_dict(torch.load('./state_dicts/vgg_normalised.pth'))
 
     norm = nn.Sequential(*list(vgg.children())[:1])
@@ -203,15 +200,29 @@ def eval_func(content_url, style_url):
     content = content.to(device).unsqueeze(0)
 
     with torch.no_grad():
+        start = time()
         Content4_1 = enc_4(enc_3(enc_2(enc_1(content))))
+        print(time() - start)
         Content5_1 = enc_5(Content4_1)
+        print(time() - start)
         Style4_1 = enc_4(enc_3(enc_2(enc_1(style))))
+        print(time() - start)
         Style5_1 = enc_5(Style4_1)
+        print(time() - start)
 
         content = decoder(transform(Content4_1, Style4_1, Content5_1, Style5_1))
+        print(time() - start)
         content.clamp(0, 255)
+        print(time() - start)
 
     content = content.cpu()
 
     output_name = './images/stylized.jpg'
     save_image(content, output_name)
+
+
+if __name__ == '__main__':
+    content_url = './images/default_content.jpg'
+    style_url = './images/default_style.jpg'
+
+    eval_func(content_url, style_url)

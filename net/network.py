@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+from pathlib import Path
 
 
 def calc_mean_std(feat, eps=1e-5):
@@ -227,7 +228,9 @@ class Net(nn.Module):
         return loss_c, loss_s, l_identity1, l_identity2
 
 
-vgg.load_state_dict(torch.load('./state_dicts/vgg_normalised.pth'))
+path = Path.cwd().parent / 'state_dicts/vgg_normalised.pth'
+
+vgg.load_state_dict(torch.load(path))
 vgg = nn.Sequential(*list(vgg.children())[:44])
 
 

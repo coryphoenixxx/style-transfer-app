@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from django.core.files.storage import FileSystemStorage
-from network.eval import eval_func
+from net.eval import eval_func
 import os
 
 

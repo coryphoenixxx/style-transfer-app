@@ -1,6 +1,6 @@
 import torch
-from network.dataloader import init_loaders
-from network.network import create_network
+from net.dataloader import init_loaders
+from net.network import create_network
 import torch.backends.cudnn as cudnn
 from PIL import Image, ImageFile
 from tqdm import tqdm

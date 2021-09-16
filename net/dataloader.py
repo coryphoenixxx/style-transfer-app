@@ -53,8 +53,8 @@ class InfiniteSamplerWrapper(data.sampler.Sampler):
 
 
 def init_loaders():
-    content_folder = Path(r'C:\Users\coryp\Downloads\content')
-    style_folder = Path(r'C:\Users\coryp\Downloads\style')
+    content_folder = Path(r'C:\Users\coryphoenixxx\Downloads\content')
+    style_folder = Path(r'C:\Users\coryphoenixxx\Downloads\style')
 
     content_dataset = FlatFolderDataset(content_folder)
     style_dataset = FlatFolderDataset(style_folder)
