@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Главная</title>
+
+    <script>
+        function upload_content() {
+
+            const fileUploader = document.getElementById('inputFileToLoadContent');
+            const reader = new FileReader();
+            const image = document.getElementById('content_img');
+
+            fileUploader.addEventListener('change', (event) => {
+              const files = event.target.files;
+              const file = files[0];
+              reader.readAsDataURL(file);
+
+              reader.addEventListener('load', (event) => {
+                image.src = event.target.result;
+                image.width = 350;
+                image.height = 350;
+              });
+        });
+        }
+
+        function upload_style() {
+
+            const fileUploader = document.getElementById('inputFileToLoadStyle');
+            const reader = new FileReader();
+            const image = document.getElementById('style_img');
+
+            fileUploader.addEventListener('change', (event) => {
+              const files = event.target.files;
+              const file = files[0];
+
+              reader.readAsDataURL(file);
+
+              reader.addEventListener('load', (event) => {
+                image.src = event.target.result;
+                image.width = 350;
+                image.height = 350;
+              });
+        });
+        }
+
+    </script>
+
+
+</head>
+
+<body >
+<header>
+    <h1 align="center">Style-Transfer (SANet)</h1>
+</header>
+<main>
+    <table style="width: 1500px" align="center">
+    <tbody>
+
+        <tr>
+            <form id="content_upload" method="post" enctype="multipart/form-data">
+
+                <td style="width: 450px" >
+                    <div align="center">
+                        <h3>SELECT CONTENT</h3>
+                        <input id="inputFileToLoadContent" style="" type="file" name="content" accept=".jpg, .jpeg, .png" onchange="upload_content()">
+                        <div id="image-grid" style="display: block; border: 2px solid black; height: 350px; width: 350px; margin-top: 10px;">
+                            <img id='content_img' src={{ content_url }} width="350" height="350">
+                        </div>
+                    </div>
+                </td>
+
+
+                <td align="center" style="width:50px;">
+                    <h1>+</h1>
+                </td>
+
+
+                <td style="width: 450px" >
+                    <div align="center">
+                        <h3>SELECT STYLE</h3>
+                        <input id="inputFileToLoadStyle" style="" type="file" name="style" accept=".jpg, .jpeg, .png" onchange="upload_style()">
+                        <div style="display: block; border: 2px solid black; height: 350px; width: 350px; margin-top: 10px;">
+                            <img id='style_img' src={{ style_url }} width="350" height="350">
+                        </div>
+                    </div>
+                </td>
+
+
+                <td align="center" style="width:50px;">
+                    <h1>=</h1>
+                </td>
+
+
+                <td style="width: 450px" >
+                    <div align="center">
+                        <h3>RESULT</h3>
+                        <button id="content_upload" style="margin-top: 20px" type="submit">STYLIZE</button>
+                        <div style="display: block; border: 3px solid black; height: 350px; width: 350px; margin-top: 10px;">
+                             <img src={{ stylized_url }} width="350" height="350">
+                        </div>
+                    </div>
+                </td>
+
+            </form>
+        </tr>
+    </tbody>
+    </table>
+</main>
+
+
+</body>
+</html>

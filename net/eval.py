@@ -170,9 +170,10 @@ def eval_func(content_url, style_url):
     transform.eval()
     vgg.eval()
 
-    decoder.load_state_dict(torch.load('./state_dicts/decoder_iter_500000.pth'))
-    transform.load_state_dict(torch.load('./state_dicts/transformer_iter_500000.pth'))
-    vgg.load_state_dict(torch.load('./state_dicts/vgg_normalised.pth'))
+
+    decoder.load_state_dict(torch.load('net/state_dicts/decoder_iter_500000.pth'))
+    transform.load_state_dict(torch.load('net/state_dicts/transformer_iter_500000.pth'))
+    vgg.load_state_dict(torch.load('net/state_dicts/vgg_normalised.pth'))
 
     norm = nn.Sequential(*list(vgg.children())[:1])
     enc_1 = nn.Sequential(*list(vgg.children())[:4])  # input -> relu1_1
@@ -217,12 +218,12 @@ def eval_func(content_url, style_url):
 
     content = content.cpu()
 
-    output_name = './images/stylized.jpg'
+    output_name = 'images/stylized.jpg'
     save_image(content, output_name)
 
 
 if __name__ == '__main__':
-    content_url = './images/default_content.jpg'
-    style_url = './images/default_style.jpg'
+    content_url = '../images/default_content.jpg'
+    style_url = '../images/default_style.jpg'
 
     eval_func(content_url, style_url)
