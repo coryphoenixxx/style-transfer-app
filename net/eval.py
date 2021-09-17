@@ -170,7 +170,6 @@ def eval_func(content_url, style_url):
     transform.eval()
     vgg.eval()
 
-
     decoder.load_state_dict(torch.load('net/state_dicts/decoder_iter_500000.pth'))
     transform.load_state_dict(torch.load('net/state_dicts/transformer_iter_500000.pth'))
     vgg.load_state_dict(torch.load('net/state_dicts/vgg_normalised.pth'))
