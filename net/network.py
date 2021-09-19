@@ -1,24 +1,7 @@
 import torch
 import torch.nn as nn
-from pathlib import Path
 
-
-def calc_mean_std(feat, eps=1e-5):
-    # eps is a small value added to the variance to avoid divide-by-zero.
-    size = feat.size()
-    assert (len(size) == 4)
-    N, C = size[:2]
-    feat_var = feat.view(N, C, -1).var(dim=2) + eps
-    feat_std = feat_var.sqrt().view(N, C, 1, 1)
-    feat_mean = feat.view(N, C, -1).mean(dim=2).view(N, C, 1, 1)
-    return feat_mean, feat_std
-
-
-def mean_variance_norm(feat):
-    size = feat.size()
-    mean, std = calc_mean_std(feat)
-    normalized_feat = (feat - mean.expand(size)) / std.expand(size)
-    return normalized_feat
+from .utils import calc_mean_std, mean_variance_norm
 
 
 def _calc_feat_flatten_mean_std(feat):
@@ -229,12 +212,11 @@ class Net(nn.Module):
         return loss_c, loss_s, l_identity1, l_identity2
 
 
-path = Path.cwd().parent / 'state_dicts/vgg_normalised.pth'
-
-vgg.load_state_dict(torch.load(path))
-vgg = nn.Sequential(*list(vgg.children())[:44])
-
-
 def create_network():
+    # from pathlib import Path
+    # path = Path.cwd().parent / 'state_dicts/vgg_normalised.pth'
+    #
+    # vgg.load_state_dict(torch.load(path))
+    # vgg = nn.Sequential(*list(vgg.children())[:44])
     network = Net(vgg, decoder, 0)
     return network, decoder, vgg
