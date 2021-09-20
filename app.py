@@ -34,11 +34,13 @@ style_choice_kb = InlineKeyboardMarkup(row_width=5)
 
 buttons = [InlineKeyboardButton(text=str(i), callback_data=f'style_{i}') for i in range(1, 21)]
 buttons.append(InlineKeyboardButton(text='Random', callback_data=f'style_random'))
+buttons.append(InlineKeyboardButton(text='All', callback_data=f'all'))
 
 style_choice_kb.add(*buttons)
 
 
 class States(StatesGroup):
+    start = State()
     waiting_for_content = State()
     waiting_for_selection_style = State()
 
@@ -62,17 +64,36 @@ async def cmd_start(msg: Message):
 async def waiting_for_content(msg: Message):
     await msg.photo[-1].download(f'images/user{msg.from_user.id}_image.jpg')
 
-    media = MediaGroup()
-    for i in range(1, 21):
-        media.attach_photo(InputFile(f'images/numbered_style/numbered_style_{i}.jpg'))
-        if i % 10 == 0:
-            await msg.answer_media_group(media)
-            media = MediaGroup()
-    media.clean()
+    # media = MediaGroup()
+    # for i in range(1, 21):
+    #     media.attach_photo(InputFile(f'images/numbered_style/numbered_style_{i}.jpg'))
+    #     if i % 10 == 0:
+    #         await msg.answer_media_group(media)
+    #         media = MediaGroup()
+    # media.clean()
 
     await msg.answer("Send me the style image number or press random button!", reply_markup=style_choice_kb)
 
     await States.next()
+
+
+@dp.message_handler(state=States.waiting_for_content, content_types=['document'])
+async def waiting_for_content(msg: Message):
+    # await msg.photo[-1].download(f'images/user{msg.from_user.id}_image.jpg')
+    #
+    # # media = MediaGroup()
+    # # for i in range(1, 21):
+    # #     media.attach_photo(InputFile(f'images/numbered_style/numbered_style_{i}.jpg'))
+    # #     if i % 10 == 0:
+    # #         await msg.answer_media_group(media)
+    # #         media = MediaGroup()
+    # # media.clean()
+    #
+    # await msg.answer("Send me the style image number or press random button!", reply_markup=style_choice_kb)
+    #
+    # await States.next()
+    await msg.answer("I can't handle uncompressed images or document!")
+    await cmd_start(msg)
 
 
 @dp.callback_query_handler(Text(startswith='style_'), state=States.waiting_for_selection_style)
@@ -85,6 +106,7 @@ async def waiting_for_selection_style(call: CallbackQuery, state: FSMContext):
 
     if user_choice == 'random':
         style_number = random.choice(range(1, 21))
+        await bot.send_message(user_id, f"I chose the {style_number} style image")
     else:
         style_number = user_choice
 
@@ -94,11 +116,32 @@ async def waiting_for_selection_style(call: CallbackQuery, state: FSMContext):
     style_url = f'images/default_style/default_style_{style_number}.jpg'
 
     start = time()
-    print(start)
     eval_func(content_url, style_url, user_id)
-    print(time() - start)
+    print('\nTime:', time() - start)
 
     await call.message.answer_photo(InputFile(f'images/user{user_id}_stylized.jpg'))
+
+    os.remove(f'images/user{user_id}_image.jpg')
+    os.remove(f'images/user{user_id}_stylized.jpg')
+
+    await state.finish()
+
+
+@dp.callback_query_handler(Text(startswith='all'), state=States.waiting_for_selection_style)
+async def waiting_for_selection_style(call: CallbackQuery, state: FSMContext):
+    with suppress(*suppress_exceptions):
+        await bot.edit_message_reply_markup(call.from_user.id, call.message.message_id)
+
+    user_id = call.from_user.id
+    content_url = f'images/user{user_id}_image.jpg'
+    for style_number in range(1, 21):
+        style_url = f'images/default_style/default_style_{style_number}.jpg'
+
+        start = time()
+        eval_func(content_url, style_url, user_id)
+        print(time() - start)
+
+        await call.message.answer_photo(InputFile(f'images/user{user_id}_stylized.jpg'))
 
     os.remove(f'images/user{user_id}_image.jpg')
     os.remove(f'images/user{user_id}_stylized.jpg')
@@ -139,6 +182,7 @@ async def main():
     runner = web.AppRunner(app)
     await runner.setup()
     site = web.TCPSite(runner, "127.0.0.1", 9000)
+    await bot.send_message(ADMIN_ID, 'Bot started.')
 
     tasks = [
         site.start(),

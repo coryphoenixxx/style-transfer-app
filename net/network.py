@@ -114,6 +114,7 @@ class SANet(nn.Module):
         self.out_conv = nn.Conv2d(in_planes, in_planes, (1, 1))
 
     def forward(self, content, style):
+        # print('Inside SANet forward: ', content.size(), style.size())
         F = self.f(mean_variance_norm(content))
         G = self.g(mean_variance_norm(style))
         H = self.h(style)
@@ -130,6 +131,7 @@ class SANet(nn.Module):
         O = O.view(b, c, h, w)
         O = self.out_conv(O)
         O += content
+
         return O
 
 
