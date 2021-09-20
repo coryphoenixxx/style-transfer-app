@@ -19,7 +19,7 @@ def eval_func(content_url, style_url, user_id):
     style_image = Image.open(style_url).convert('RGB')
 
     content = style_transform(content_image.size)(content_image).to(device).unsqueeze(0)
-    style = transforms.ToTensor()(style_image).to(device).unsqueeze(0)
+    style = style_transform(content_image.size)(style_image).to(device).unsqueeze(0)
 
     with torch.no_grad():
 
@@ -28,10 +28,7 @@ def eval_func(content_url, style_url, user_id):
         style4_1 = enc_4(enc_3(enc_2(enc_1(style))))
         style5_1 = enc_5(style4_1)
 
-        content = decoder(transform(content4_1, style4_1, content5_1, style5_1))
-        content.clamp(0, 255)
+        stylized = decoder(transform(content4_1, style4_1, content5_1, style5_1))
+        stylized.clamp(0, 255)
 
-    content = content.cpu()
-
-    output_name = f'images/user{user_id}_stylized.jpg'
-    save_image(content, output_name)
+    save_image(stylized.cpu(), fp=f'images/{user_id}_stylized.jpg')
