@@ -11,7 +11,7 @@ from aiogram import Bot, Dispatcher
 from aiogram.types import Message, CallbackQuery, InputFile, MediaGroup, InlineKeyboardMarkup, InlineKeyboardButton, \
     ParseMode
 from aiogram.utils.exceptions import MessageNotModified, MessageToEditNotFound, MessageCantBeEdited
-from aiohttp import web
+from aiohttp import web, ClientResponse
 from aiohttp.web_request import Request
 from aiogram.dispatcher.filters.state import StatesGroup, State
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
@@ -214,33 +214,34 @@ async def waiting_for_selection_style(call: CallbackQuery, state: FSMContext):
     await state.finish()
 
 
-
-
-
-
-
-
-
-
-
-
 @aiohttp_jinja2.template('main.html')
 async def get_handler(request: Request):
-    return {'content_url': "images/default_content.jpg",
-            'style_url': "images/default_style.jpg"}
+    return
 
 
-@aiohttp_jinja2.template('main.html')
 async def post_handler(request: Request):
-    content_url = 'images/default_content.jpg'
-    style_url = 'images/default_style.jpg'
 
-    eval_func(content_url, style_url)
+    data = await request.post()
 
-    return {'content_url': "images/default_content.jpg",
-            'style_url': "images/default_style.jpg",
-            'stylized_url': "images/stylized.jpg"
-            }
+    print(data)
+
+    content = data['content'].file.read()
+    style = data['style'].file.read()
+
+    content_url = 'images/web_content.jpg'
+    style_url = 'images/web_style.jpg'
+
+    with open(content_url, 'wb') as f:
+        f.write(content)
+
+    with open(style_url, 'wb') as f:
+        f.write(style)
+
+    eval_func(content_url, style_url, 5000)
+
+    return web.json_response({
+            'stylized_url': "images/5000_stylized.jpg"
+            })
 
 
 async def main():
@@ -256,7 +257,7 @@ async def main():
 
     runner = web.AppRunner(app)
     await runner.setup()
-    site = web.TCPSite(runner, "127.0.0.1", 9000)
+    site = web.TCPSite(runner, "127.0.0.1")
     await bot.send_message(ADMIN_ID, 'Bot started. /start')
 
     tasks = [
