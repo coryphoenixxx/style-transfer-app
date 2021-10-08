@@ -20,6 +20,8 @@ from aiogram.dispatcher.filters import Text
 
 from net.eval import eval_func
 
+from PIL import Image
+
 suppress_exceptions = (AttributeError, MessageNotModified, MessageToEditNotFound, MessageCantBeEdited)
 
 API_TOKEN = os.getenv('API_TOKEN')
@@ -47,6 +49,25 @@ class States(StatesGroup):
     waiting_for_content = State()
     waiting_for_user_style = State()
     waiting_for_selection_style = State()
+
+
+MAX_IMAGE_SIZE = 1280
+
+
+async def resize_image(img_url: str):
+    img: Image = Image.open(img_url)
+    width, height = img.width, img.height
+
+    if width > MAX_IMAGE_SIZE or height > MAX_IMAGE_SIZE:
+        if width > height:
+            new_width = MAX_IMAGE_SIZE
+            new_height = MAX_IMAGE_SIZE * height // width
+        else:
+            new_width = MAX_IMAGE_SIZE * width // height
+            new_height = MAX_IMAGE_SIZE
+
+        new_img = img.resize((new_width, new_height))
+        new_img.save(img_url, "JPEG", optimize=True)
 
 
 async def stylization_entry_point_handler(user_id):
@@ -223,8 +244,6 @@ async def post_handler(request: Request):
 
     data = await request.post()
 
-    print(data)
-
     content = data['content'].file.read()
     style = data['style'].file.read()
 
@@ -237,11 +256,14 @@ async def post_handler(request: Request):
     with open(style_url, 'wb') as f:
         f.write(style)
 
+    await resize_image(content_url)
+    await resize_image(style_url)
+
     eval_func(content_url, style_url, 5000)
 
-    return web.json_response({
-            'stylized_url': "images/5000_stylized.jpg"
-            })
+    await asyncio.sleep(2)
+    return web.json_response(data={'stylized_url': "images/5000_stylized.jpg"},
+                             headers={'Cache-Control': "no-cache, no-store, must-revalidate"})
 
 
 async def main():
