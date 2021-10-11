@@ -30,43 +30,62 @@ function preview(element) {
 
 async function sendRequest() {
 
-    const content = document.getElementById('content').files[0]
-    const style = document.getElementById('style').files[0]
+    const content = document.getElementById('content').files[0];
+    const style = document.getElementById('style').files[0];
 
 
-    let sel_content = document.getElementById('sel_content')
-    let sel_style = document.getElementById('sel_style')
+    let sel_content = document.getElementById('sel_content');
+    let sel_style = document.getElementById('sel_style');
 
     if (typeof content == "undefined") {
-
-        sel_content.style.color = 'red'
+        sel_content.style.color = 'red';
     } else {
-        sel_content.style.color = 'black'
+        sel_content.style.color = 'black';
     }
 
     if (typeof style == "undefined") {
-
-        sel_style.style.color = 'red'
+        sel_style.style.color = 'red';
     } else {
-        sel_style.style.color = 'black'
+        sel_style.style.color = 'black';
     }
 
     if (typeof content == "undefined" || typeof style == "undefined") return;
 
-    let stylized = document.getElementById('stylized')
-    stylized.src = 'images/loader.gif'
+    let stylized = document.getElementById('stylized');
+    stylized.src = 'images/loader.gif';
 
 
-    let data = new FormData()
-    data.append("content", content)
-    data.append("style", style)
+    let data = new FormData();
+    data.append("content", content);
+    data.append("style", style);
 
     return await fetch('/', {
         method: 'POST',
         body: data
     }).then(response => {
-        response.json().then(obj => {
-            stylized.src = obj.stylized_url
+        response.arrayBuffer().then(obj => {
+
+            let arrayBufferView = new Uint8Array(obj);
+            let blob = new Blob([arrayBufferView], {type: 'image/jpeg'});
+            let urlCreator = window.URL || window.webkitURL;
+            let imageUrl = urlCreator.createObjectURL(blob);
+
+            stylized.onload = function () {
+                let w = stylized.naturalWidth;
+                let h = stylized.naturalHeight;
+
+                let ratio =  w / h;
+
+                if (w <= h) {
+                    stylized.width = 512 * ratio;
+                    stylized.height = 512;
+                } else {
+                    stylized.width = 512;
+                    stylized.height = 512 / ratio;
+                }
+            }
+
+            stylized.src = imageUrl;
         })
     })
 }

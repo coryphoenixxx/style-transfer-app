@@ -1,26 +1,24 @@
 import asyncio
 import os
+import random
+from contextlib import suppress
+from io import BytesIO
+
 import aiohttp_jinja2
 import jinja2
-import random
-
-from time import time
-
-from contextlib import suppress
+from PIL import Image
 from aiogram import Bot, Dispatcher
-from aiogram.types import Message, CallbackQuery, InputFile, MediaGroup, InlineKeyboardMarkup, InlineKeyboardButton, \
-    ParseMode
-from aiogram.utils.exceptions import MessageNotModified, MessageToEditNotFound, MessageCantBeEdited
-from aiohttp import web, ClientResponse
-from aiohttp.web_request import Request
-from aiogram.dispatcher.filters.state import StatesGroup, State
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import Text
+from aiogram.dispatcher.filters.state import StatesGroup, State
+from aiogram.types import Message, CallbackQuery, InputFile, MediaGroup, InlineKeyboardMarkup, InlineKeyboardButton, \
+    ParseMode
+from aiogram.utils.exceptions import MessageNotModified, MessageToEditNotFound, MessageCantBeEdited
+from aiohttp import web
+from aiohttp.web_request import Request
 
 from net.eval import eval_func
-
-from PIL import Image
 
 suppress_exceptions = (AttributeError, MessageNotModified, MessageToEditNotFound, MessageCantBeEdited)
 
@@ -54,9 +52,8 @@ class States(StatesGroup):
 MAX_IMAGE_SIZE = 1280
 
 
-async def resize_image(img_url: str):
-    img: Image = Image.open(img_url)
-    width, height = img.width, img.height
+async def resize_image(img_obj: Image):
+    width, height = img_obj.width, img_obj.height
 
     if width > MAX_IMAGE_SIZE or height > MAX_IMAGE_SIZE:
         if width > height:
@@ -66,8 +63,9 @@ async def resize_image(img_url: str):
             new_width = MAX_IMAGE_SIZE * width // height
             new_height = MAX_IMAGE_SIZE
 
-        new_img = img.resize((new_width, new_height))
-        new_img.save(img_url, "JPEG", optimize=True)
+        img_obj = img_obj.resize((new_width, new_height))
+        return img_obj
+    return img_obj
 
 
 async def stylization_entry_point_handler(user_id):
@@ -136,6 +134,7 @@ async def waiting_for_content(msg: Message, state: FSMContext):
 
     with suppress(*suppress_exceptions):
         await bot.delete_message(user_id, msg.message_id - 1)
+
     await msg.photo[-1].download(f'images/{user_id}_style.jpg')
 
     await msg.answer('I got it. Now wait...')
@@ -193,11 +192,11 @@ async def waiting_for_selection_style(call: CallbackQuery, state: FSMContext):
     content_url = f'images/{user_id}_content.jpg'
     style_url = f'images/default_style/default_style_{style_number}.jpg'
 
-    eval_func(content_url, style_url, user_id)
+    stylized_url = eval_func(content_url, style_url)
 
     media = MediaGroup()
     media.attach_photo(InputFile(f'images/default_style/default_style_{style_number}.jpg'))
-    media.attach_photo(InputFile(f'images/{user_id}_stylized.jpg'))
+    media.attach_photo(InputFile(stylized_url))
     await call.message.answer_media_group(media)
     media.clean()
 
@@ -219,19 +218,15 @@ async def waiting_for_selection_style(call: CallbackQuery, state: FSMContext):
     for style_number in range(1, 21):
         style_url = f'images/default_style/default_style_{style_number}.jpg'
 
-        eval_func(content_url, style_url, user_id)
+        stylized_url = eval_func(content_url, style_url)
 
         media = MediaGroup()
 
         media.attach_photo(InputFile(f'images/default_style/default_style_{style_number}.jpg'))
-        media.attach_photo(InputFile(f'images/{user_id}_stylized.jpg'))
+        media.attach_photo(InputFile(stylized_url))
         await call.message.answer_media_group(media)
         media.clean()
         await asyncio.sleep(2)
-
-    os.remove(f'images/{user_id}_content.jpg')
-    os.remove(f'images/{user_id}_stylized.jpg')
-
     await state.finish()
 
 
@@ -240,30 +235,19 @@ async def get_handler(request: Request):
     return
 
 
-async def post_handler(request: Request):
-
+async def post_handler(request):
     data = await request.post()
 
-    content = data['content'].file.read()
-    style = data['style'].file.read()
+    content_img_obj = Image.open(BytesIO(data['content'].file.read()))
+    style_img_obj = Image.open(BytesIO(data['style'].file.read()))
 
-    content_url = 'images/web_content.jpg'
-    style_url = 'images/web_style.jpg'
+    content_img_obj = await resize_image(content_img_obj)
+    style_img_obj = await resize_image(style_img_obj)
 
-    with open(content_url, 'wb') as f:
-        f.write(content)
+    stylized_img_obj = eval_func(content_img_obj, style_img_obj)
 
-    with open(style_url, 'wb') as f:
-        f.write(style)
-
-    await resize_image(content_url)
-    await resize_image(style_url)
-
-    eval_func(content_url, style_url, 5000)
-
-    await asyncio.sleep(2)
-    return web.json_response(data={'stylized_url': "images/5000_stylized.jpg"},
-                             headers={'Cache-Control': "no-cache, no-store, must-revalidate"})
+    await asyncio.sleep(1)
+    return web.Response(body=stylized_img_obj, content_type='image/jpeg')
 
 
 async def main():
@@ -286,7 +270,7 @@ async def main():
         site.start(),
         dp.start_polling()
     ]
-
+    print('App started.')
     await asyncio.gather(*tasks)
 
 

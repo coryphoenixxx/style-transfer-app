@@ -39,18 +39,16 @@
                 </td>
 
 
-                <td id="style_td" style="width: 450px" >
+                <td>
                     <div align="center">
                         <h3 id="sel_style">SELECT STYLE</h3>
 
                         <input id="style" name="style" type="file" onchange="preview(this)" value=""/>
-                        <div style="display: block; border: 2px solid black; height: 350px; width: 350px; margin-top: 10px;">
+                        <div style="display: block;">
                             <img id='styleImg' src="{{ style_url }}" width="350" height="350">
                         </div>
-
-                        </div>
                     </div>
-                    <button id="select_style" style="margin-top: 20px" type="button" onclick="showImages()">OR SELECT</button>
+                    {#                    <button id="select_style" style="margin-top: 20px" type="button" onclick="showImages()">OR SELECT</button>#}
                 </td>
 
 
@@ -63,8 +61,8 @@
                     <div align="center">
                         <h3>RESULT</h3>
                         <button id="content_upload" style="margin-top: 20px" type="submit" onclick="sendRequest()">STYLIZE</button>
-                        <div style="display: block; border: 3px solid black; height: 350px; width: 350px; margin-top: 10px;">
-                             <img id="stylized" src="#" width="350" height="350">
+                        <div style="display: block;">
+                             <img id="stylized" src="#" width="512" height="512">
                         </div>
                     </div>
                 </td>
