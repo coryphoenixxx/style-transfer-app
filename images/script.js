@@ -1,53 +1,51 @@
-function preview(element) {
-    let file = element.files[0];
-    let reader = new FileReader();
-    reader.readAsDataURL(file);
-
-    reader.onload = function () {
-        let image = new Image();
-
-        image.src = reader.result;
-
-        image.onload = function() {
-            let w = this.width;
-            let h = this.height;
-            let ratio =  w / h;
-
-            let img = element.nextElementSibling.children[0];
-
-            if (w <= h) {
-                img.width = 400 * ratio;
-                img.height = 400;
-            } else {
-                img.width = 400;
-                img.height = 400 / ratio;
-            }
-            img.src = reader.result;
-        }
-
-    }
-}
+// function preview(element) {
+//     let file = element.files[0];
+//     let reader = new FileReader();
+//     reader.readAsDataURL(file);
+//
+//     reader.onload = function () {
+//         let image = new Image();
+//
+//         image.src = reader.result;
+//
+//         image.onload = function() {
+//             let w = this.width;
+//             let h = this.height;
+//             let ratio =  w / h;
+//
+//             let img = element.nextElementSibling.children[0];
+//
+//             if (w <= h) {
+//                 img.width = 350 * ratio;
+//                 img.height = 350;
+//             } else {
+//                 img.width = 350;
+//                 img.height = 350 / ratio;
+//             }
+//             img.src = reader.result;
+//         }
+//     }
+// }
 
 async function sendRequest() {
-
     const content = document.getElementById('content').files[0];
     const style = document.getElementById('style').files[0];
 
 
-    let sel_content = document.getElementById('sel_content');
-    let sel_style = document.getElementById('sel_style');
-
-    if (typeof content == "undefined") {
-        sel_content.style.color = 'red';
-    } else {
-        sel_content.style.color = 'black';
-    }
-
-    if (typeof style == "undefined") {
-        sel_style.style.color = 'red';
-    } else {
-        sel_style.style.color = 'black';
-    }
+    // let sel_content = document.getElementById('sel_content');
+    // let sel_style = document.getElementById('sel_style');
+    //
+    // if (typeof content == "undefined") {
+    //     sel_content.style.color = 'red';
+    // } else {
+    //     sel_content.style.color = 'black';
+    // }
+    //
+    // if (typeof style == "undefined") {
+    //     sel_style.style.color = 'red';
+    // } else {
+    //     sel_style.style.color = 'black';
+    // }
 
     if (typeof content == "undefined" || typeof style == "undefined") return;
 
@@ -90,19 +88,88 @@ async function sendRequest() {
     })
 }
 
-function showImages() {
-    let td = document.getElementById('style_td');
+// function showImages() {
+//     let td = document.getElementById('style_td');
+//
+//     console.log(td)
+//
+//     for (let i = 1; i <= 20; i++) {
+//         let img = document.createElement('img')
+//         img.style.width = '50px';
+//         img.style.height = '50px';
+//         img.src = `images/default_style/default_style_${i}.jpg`
+//         td.appendChild(img)
+//
+//     }
+//
+// }
 
-    console.log(td)
+//dropzone
 
-    for (let i = 1; i <= 20; i++) {
-        let img = document.createElement('img')
-        img.style.width = '50px';
-        img.style.height = '50px';
-        img.src = `images/default_style/default_style_${i}.jpg`
-        td.appendChild(img)
 
+document.querySelectorAll(".drop-zone__input").forEach(inputElement => {
+    const dropZoneElement = inputElement.closest(".drop-zone");
+
+    dropZoneElement.addEventListener("click", e => {
+        inputElement.click()
+    })
+
+    inputElement.addEventListener("change", e => {
+        if (inputElement.files.length) {
+            updateThumbnail(dropZoneElement, inputElement.files[0]);
+        }
+    })
+
+    dropZoneElement.addEventListener("dragover", e => {
+        e.preventDefault()
+        dropZoneElement.classList.add("drop-zone--over");
+    });
+
+    ["dragleave", "dragend"].forEach(type => {
+        dropZoneElement.addEventListener(type, e => {
+            dropZoneElement.classList.remove("drop-zone--over");
+        })
+    })
+
+    dropZoneElement.addEventListener("drop", e => {
+        e.preventDefault();
+
+        if (e.dataTransfer.files.length) {
+            inputElement.files = e.dataTransfer.files;
+            updateThumbnail(dropZoneElement, e.dataTransfer.files[0]);
+        }
+
+        dropZoneElement.classList.remove("drop-zone--over");
+    });
+});
+
+function updateThumbnail(dropZoneElement, file) {
+    let thumbnailElement = dropZoneElement.querySelector(".drop-zone__thumb");
+
+    // First time - remove the prompt
+    if (dropZoneElement.querySelector(".drop-zone__prompt")) {
+        dropZoneElement.querySelector(".drop-zone__prompt").remove();
     }
 
+    // First time - there is no thumbnail element, so let's create it
+    if (!thumbnailElement) {
+        thumbnailElement = document.createElement("div");
+        thumbnailElement.classList.add("drop-zone__thumb");
+        dropZoneElement.appendChild(thumbnailElement);
+    }
+
+    thumbnailElement.dataset.label = file.name;
+
+    // Show thumbnail for image files
+    if (file.type.startsWith('image/')) {
+        const reader = new FileReader();
+
+        reader.readAsDataURL(file);
+        reader.onload = () => {
+          thumbnailElement.style.backgroundImage = `url('${ reader.result }')`;
+        };
+    } else {
+        thumbnailElement.style.backgroundImage = null;
+    }
 }
 

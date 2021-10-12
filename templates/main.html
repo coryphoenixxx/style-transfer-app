@@ -8,72 +8,43 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Главная</title>
 
-    <script src="/images/script.js"></script>
+    <link rel="stylesheet" href="/images/style.css" />
 
 </head>
 
-<body >
+<body>
+
 <header>
     <h1 align="center">Style-Transfer (SANet)</h1>
 </header>
-<main>
-    <table style="width: 1500px" align="center">
-    <tbody>
-
-        <tr>
-                <td>
-                    <div align="center">
-                        <h3 id="sel_content">SELECT CONTENT</h3>
-
-                        <input id="content" name="content" type="file" onchange="preview(this)" value=""/>
-                        <div style="display: block;">
-                            <img id='contentImg' src="{{ content_url }}" width="350" height="350">
-                        </div>
-
-                    </div>
-                </td>
 
 
-                <td align="center" style="width:50px;">
-                    <h1>+</h1>
-                </td>
+
+<h3 id="sel_content">SELECT CONTENT</h3>
+<div class="drop-zone">
+    <span class="drop-zone__prompt">Drop image file here or click to upload</span>
+    <input id='content' type="file" name="content" class="drop-zone__input" multiple>
+</div>
 
 
-                <td>
-                    <div align="center">
-                        <h3 id="sel_style">SELECT STYLE</h3>
 
-                        <input id="style" name="style" type="file" onchange="preview(this)" value=""/>
-                        <div style="display: block;">
-                            <img id='styleImg' src="{{ style_url }}" width="350" height="350">
-                        </div>
-                    </div>
-                    {#                    <button id="select_style" style="margin-top: 20px" type="button" onclick="showImages()">OR SELECT</button>#}
-                </td>
+<h3 id="sel_style">SELECT STYLE</h3>
+<div class="drop-zone">
+    <span class="drop-zone__prompt">Drop image file here or click to upload</span>
+    <input id="style" type="file" name="content" class="drop-zone__input" multiple>
+</div>
 
 
-                <td align="center" style="width:50px;">
-                    <h1>=</h1>
-                </td>
 
-
-                <td style="width: 450px" >
-                    <div align="center">
-                        <h3>RESULT</h3>
-                        <button id="content_upload" style="margin-top: 20px" type="submit" onclick="sendRequest()">STYLIZE</button>
-                        <div style="display: block;">
-                             <img id="stylized" src="#" width="512" height="512">
-                        </div>
-                    </div>
-                </td>
-        </tr>
-    </tbody>
-    </table>
-
-</main>
+<h3>RESULT</h3>
+<button id="content_upload" style="margin-top: 20px" type="submit" onclick="sendRequest()">STYLIZE</button>
+<div style="display: block;">
+     <img id="stylized" src="#" width="512" height="512">
+</div>
 
 
 
 
+<script src="/images/script.js"></script>
 </body>
 </html>
