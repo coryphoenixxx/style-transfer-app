@@ -13,38 +13,39 @@
 </head>
 
 <body>
+    <div id="main">
+        <div>
+            <h3 id="sel_content">SELECT CONTENT</h3>
+            <div class="drop-zone">
+                <span class="drop-zone__prompt">Drop image file here or click to upload</span>
+                <input id='content' type="file" name="content" class="drop-zone__input" multiple>
+            </div>
+        </div>
 
-<header>
-    <h1 align="center">Style-Transfer (SANet)</h1>
-</header>
+        <div class="sign">
+            <h1 class="sign-text">+</h1>
+        </div>
 
+        <div>
+            <h3 id="sel_style">SELECT STYLE</h3>
+            <div class="drop-zone">
+                <span class="drop-zone__prompt">Drop image file here or click to upload</span>
+                <input id="style" type="file" name="content" class="drop-zone__input" multiple>
+            </div>
+        </div>
 
+        <div class="sign">
+            <h1 class="sign-text">=</h1>
+        </div>
 
-<h3 id="sel_content">SELECT CONTENT</h3>
-<div class="drop-zone">
-    <span class="drop-zone__prompt">Drop image file here or click to upload</span>
-    <input id='content' type="file" name="content" class="drop-zone__input" multiple>
-</div>
-
-
-
-<h3 id="sel_style">SELECT STYLE</h3>
-<div class="drop-zone">
-    <span class="drop-zone__prompt">Drop image file here or click to upload</span>
-    <input id="style" type="file" name="content" class="drop-zone__input" multiple>
-</div>
-
-
-
-<h3>RESULT</h3>
-<button id="content_upload" style="margin-top: 20px" type="submit" onclick="sendRequest()">STYLIZE</button>
-<div style="display: block;">
-     <img id="stylized" src="#" width="512" height="512">
-</div>
-
-
-
-
-<script src="/images/script.js"></script>
+        <div>
+            <button id="content_upload" type="submit" onclick="sendRequest()">STYLIZE</button>
+            <div id="stylized">
+                <span class="drop-zone__prompt">RESULT</span>
+            </div>
+        </div>
+    </div>
+    
+    <script src="/images/script.js"></script>
 </body>
 </html>

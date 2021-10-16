@@ -3,16 +3,16 @@ html {
   height:100%;
 }
 
-.image-container {
+#main {
     display: flex;
-    width: 370px;
-    height: 370px;
-    border: 2px solid black;
-    border-radius: 5px 5px 5px 5px;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
 }
 
 .drop-zone {
-    max-width: 350px;
+    /*max-width: 350px;*/
+    width: 350px;
     height: 350px;
     display: flex;
     padding: 10px;
@@ -42,7 +42,9 @@ html {
     border-radius: 10px;
     overflow: hidden;
     background-color: #cccccc;
-    background-size: cover;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
     position: relative;
 }
 
@@ -59,3 +61,36 @@ html {
     text-align: center;
 }
 
+.sign {
+    display: flex;
+    justify-content: center;
+    min-width: 150px;
+
+}
+
+.sign-text {
+    font-size: large;
+    font-weight: bold;
+    font-family: 'Quicksand', sans-serif;
+}
+
+#stylized {
+    width: 512px;
+    height: 512px;
+    display: flex;
+    padding: 10px;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    font-family: 'Quicksand', sans-serif;
+    font-weight: 800;
+    font-size: 20px;
+    cursor: pointer;
+    color: black;
+    border: 4px dashed #009578;
+    border-radius: 10px;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    position: relative;
+}

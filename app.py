@@ -103,8 +103,8 @@ async def cmd_cancel(call: CallbackQuery, state: FSMContext):
 async def waiting_for_content(msg: Message):
     with suppress(*suppress_exceptions):
         await bot.delete_message(msg.from_user.id, msg.message_id - 1)
-    await msg.photo[-1].download(f'images/{msg.from_user.id}_content.jpg')
 
+    await msg.photo[-1].download(f'images/{msg.from_user.id}_content.jpg')
     await msg.answer("<b>❗ What's next?</b>", reply_markup=style_type_choice_kb)
 
 
@@ -246,7 +246,7 @@ async def post_handler(request):
 
     stylized_img_obj = eval_func(content_img_obj, style_img_obj)
 
-    await asyncio.sleep(1)
+    await asyncio.sleep(2)
     return web.Response(body=stylized_img_obj, content_type='image/jpeg')
 
 

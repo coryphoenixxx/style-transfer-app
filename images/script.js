@@ -27,31 +27,39 @@
 //     }
 // }
 
+function download(url) {
+    let thumbnailElements = document.body.querySelectorAll(".drop-zone__thumb")
+    let contentFilename = thumbnailElements[0].dataset.label
+
+    let link = document.createElement('a');
+    link.href = url;
+    link.download = contentFilename.split('.')[0] + '_stylized.jpg'
+    document.body.appendChild(link);
+    link.click();
+    console.log('CLICK')
+    link.remove()
+}
+
 async function sendRequest() {
     const content = document.getElementById('content').files[0];
     const style = document.getElementById('style').files[0];
 
-
-    // let sel_content = document.getElementById('sel_content');
-    // let sel_style = document.getElementById('sel_style');
-    //
-    // if (typeof content == "undefined") {
-    //     sel_content.style.color = 'red';
-    // } else {
-    //     sel_content.style.color = 'black';
-    // }
-    //
-    // if (typeof style == "undefined") {
-    //     sel_style.style.color = 'red';
-    // } else {
-    //     sel_style.style.color = 'black';
-    // }
-
     if (typeof content == "undefined" || typeof style == "undefined") return;
 
     let stylized = document.getElementById('stylized');
-    stylized.src = 'images/loader.gif';
+    let thumb = stylized.querySelector('.drop-zone__thumb')
 
+    if (stylized.querySelector(".drop-zone__prompt")) {
+        stylized.querySelector(".drop-zone__prompt").remove();
+    }
+
+    if (!thumb) {
+        thumb = document.createElement("div")
+        thumb.classList.add('drop-zone__thumb')
+        stylized.appendChild(thumb)
+    }
+
+    thumb.style.backgroundImage = "url('images/loader.gif')"
 
     let data = new FormData();
     data.append("content", content);
@@ -68,22 +76,13 @@ async function sendRequest() {
             let urlCreator = window.URL || window.webkitURL;
             let imageUrl = urlCreator.createObjectURL(blob);
 
-            stylized.onload = function () {
-                let w = stylized.naturalWidth;
-                let h = stylized.naturalHeight;
+            thumb.style.backgroundImage = `url('${ imageUrl }')`;
+            thumb.dataset.label = 'CLICK TO DOWNLOAD';
 
-                let ratio =  w / h;
 
-                if (w <= h) {
-                    stylized.width = 512 * ratio;
-                    stylized.height = 512;
-                } else {
-                    stylized.width = 512;
-                    stylized.height = 512 / ratio;
-                }
-            }
-
-            stylized.src = imageUrl;
+            thumb.addEventListener('click', e => {
+                download(imageUrl);
+            })
         })
     })
 }
@@ -103,8 +102,6 @@ async function sendRequest() {
 //     }
 //
 // }
-
-//dropzone
 
 
 document.querySelectorAll(".drop-zone__input").forEach(inputElement => {
@@ -165,8 +162,16 @@ function updateThumbnail(dropZoneElement, file) {
         const reader = new FileReader();
 
         reader.readAsDataURL(file);
+
         reader.onload = () => {
-          thumbnailElement.style.backgroundImage = `url('${ reader.result }')`;
+            let image = new Image();
+
+            image.src = reader.result;
+
+            // image.onload = () => {
+            //     console.log(image.width)
+            // }
+            thumbnailElement.style.backgroundImage = `url('${ reader.result }')`;
         };
     } else {
         thumbnailElement.style.backgroundImage = null;
