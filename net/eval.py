@@ -1,5 +1,6 @@
 from io import BytesIO
 
+from PIL import Image
 from torchvision import transforms
 from torchvision.utils import save_image
 
@@ -15,12 +16,34 @@ def style_transform(size):
                                transforms.ToTensor()])
 
 
-def eval_func(content_img_obj, style_img_obj):
-    content_image = content_img_obj.convert('RGB')
-    style_image = style_img_obj.convert('RGB')
+MAX_IMAGE_SIZE = 1280
 
-    content = style_transform(content_image.size)(content_image).to(device).unsqueeze(0)
-    style = style_transform(content_image.size)(style_image).to(device).unsqueeze(0)
+
+async def resize_image(img_obj: Image):
+    width, height = img_obj.width, img_obj.height
+
+    if width > MAX_IMAGE_SIZE or height > MAX_IMAGE_SIZE:
+        if width > height:
+            new_width = MAX_IMAGE_SIZE
+            new_height = MAX_IMAGE_SIZE * height // width
+        else:
+            new_width = MAX_IMAGE_SIZE * width // height
+            new_height = MAX_IMAGE_SIZE
+
+        img_obj = img_obj.resize((new_width, new_height))
+        return img_obj
+    return img_obj
+
+
+async def eval_func(content_io, style_io):
+    content_image = Image.open(content_io).convert('RGB')
+    style_image = Image.open(style_io).convert('RGB')
+
+    content_img_obj = await resize_image(content_image)
+    style_img_obj = await resize_image(style_image)
+
+    content = style_transform(content_img_obj.size)(content_img_obj).to(device).unsqueeze(0)
+    style = style_transform(style_img_obj.size)(style_img_obj).to(device).unsqueeze(0)
 
     with torch.no_grad():
         content4_1 = enc_4(enc_3(enc_2(enc_1(content))))
@@ -33,4 +56,4 @@ def eval_func(content_img_obj, style_img_obj):
 
     save_image(stylized.cpu(), fp=buffer, format='jpeg')
 
-    return buffer.getvalue()
+    return buffer

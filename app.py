@@ -49,25 +49,6 @@ class States(StatesGroup):
     waiting_for_selection_style = State()
 
 
-MAX_IMAGE_SIZE = 1280
-
-
-async def resize_image(img_obj: Image):
-    width, height = img_obj.width, img_obj.height
-
-    if width > MAX_IMAGE_SIZE or height > MAX_IMAGE_SIZE:
-        if width > height:
-            new_width = MAX_IMAGE_SIZE
-            new_height = MAX_IMAGE_SIZE * height // width
-        else:
-            new_width = MAX_IMAGE_SIZE * width // height
-            new_height = MAX_IMAGE_SIZE
-
-        img_obj = img_obj.resize((new_width, new_height))
-        return img_obj
-    return img_obj
-
-
 async def stylization_entry_point_handler(user_id):
     await States.waiting_for_content.set()
     await bot.send_message(user_id, text='<b>❗ Send me an image for stylization!</b>', reply_markup=cancel_kb)
@@ -100,11 +81,14 @@ async def cmd_cancel(call: CallbackQuery, state: FSMContext):
 
 
 @dp.message_handler(state=States.waiting_for_content, content_types=['photo'])
-async def waiting_for_content(msg: Message):
+async def waiting_for_content(msg: Message, state: FSMContext):
     with suppress(*suppress_exceptions):
         await bot.delete_message(msg.from_user.id, msg.message_id - 1)
 
-    await msg.photo[-1].download(f'images/{msg.from_user.id}_content.jpg')
+    content_io = BytesIO()
+    await msg.photo[-1].download(content_io)
+    await state.update_data(user_content=content_io)
+
     await msg.answer("<b>❗ What's next?</b>", reply_markup=style_type_choice_kb)
 
 
@@ -135,27 +119,20 @@ async def waiting_for_content(msg: Message, state: FSMContext):
     with suppress(*suppress_exceptions):
         await bot.delete_message(user_id, msg.message_id - 1)
 
-    await msg.photo[-1].download(f'images/{user_id}_style.jpg')
+    content_io = (await state.get_data()).get('user_content')
+    await state.reset_data()
+    style_io = BytesIO()
+    await msg.photo[-1].download(style_io)
 
     await msg.answer('I got it. Now wait...')
 
-    content_url = f'images/{user_id}_content.jpg'
-    style_url = f'images/{user_id}_style.jpg'
+    stylized_img_obj = await eval_func(content_io, style_io)
 
-    eval_func(content_url, style_url, user_id)
+    stylized_img_obj.seek(0)
 
     await msg.answer("<b>Your result:</b>")
 
-    media = MediaGroup()
-    media.attach_photo(InputFile(f'images/{user_id}_content.jpg'))
-    media.attach_photo(InputFile(f'images/{user_id}_style.jpg'))
-    media.attach_photo(InputFile(f'images/{user_id}_stylized.jpg'))
-    await msg.answer_media_group(media)
-    media.clean()
-
-    os.remove(f'images/{user_id}_content.jpg')
-    os.remove(f'images/{user_id}_style.jpg')
-    os.remove(f'images/{user_id}_stylized.jpg')
+    await msg.answer_photo(stylized_img_obj)
 
     await state.finish()
 
@@ -182,26 +159,25 @@ async def waiting_for_selection_style(call: CallbackQuery, state: FSMContext):
     with suppress(*suppress_exceptions):
         await bot.edit_message_reply_markup(call.from_user.id, call.message.message_id)
 
-    user_id = call.from_user.id
     user_choice = call.data[6:]
 
     style_number = random.choice(range(1, 21)) if user_choice == 'random' else user_choice
 
     await call.message.answer("<b>I got it. Now wait...</b>")
 
-    content_url = f'images/{user_id}_content.jpg'
+    content_io = (await state.get_data()).get('user_content')
+    await state.reset_data()
+
     style_url = f'images/default_style/default_style_{style_number}.jpg'
 
-    stylized_url = eval_func(content_url, style_url)
+    stylized_io = await eval_func(content_io, style_url)
+    stylized_io.seek(0)
 
     media = MediaGroup()
-    media.attach_photo(InputFile(f'images/default_style/default_style_{style_number}.jpg'))
-    media.attach_photo(InputFile(stylized_url))
+    media.attach_photo(InputFile(style_url))
+    media.attach_photo(InputFile(stylized_io))
     await call.message.answer_media_group(media)
     media.clean()
-
-    os.remove(f'images/{user_id}_content.jpg')
-    os.remove(f'images/{user_id}_stylized.jpg')
 
     await state.finish()
 
@@ -213,17 +189,19 @@ async def waiting_for_selection_style(call: CallbackQuery, state: FSMContext):
     with suppress(*suppress_exceptions):
         await bot.edit_message_reply_markup(call.from_user.id, call.message.message_id)
 
-    user_id = call.from_user.id
-    content_url = f'images/{user_id}_content.jpg'
+    content_io = (await state.get_data()).get('user_content')
+    await state.reset_data()
+
     for style_number in range(1, 21):
         style_url = f'images/default_style/default_style_{style_number}.jpg'
 
-        stylized_url = eval_func(content_url, style_url)
+        stylized_io = await eval_func(content_io, style_url)
+        stylized_io.seek(0)
 
         media = MediaGroup()
 
         media.attach_photo(InputFile(f'images/default_style/default_style_{style_number}.jpg'))
-        media.attach_photo(InputFile(stylized_url))
+        media.attach_photo(InputFile(stylized_io))
         await call.message.answer_media_group(media)
         media.clean()
         await asyncio.sleep(2)
@@ -238,16 +216,17 @@ async def get_handler(request: Request):
 async def post_handler(request):
     data = await request.post()
 
-    content_img_obj = Image.open(BytesIO(data['content'].file.read()))
-    style_img_obj = Image.open(BytesIO(data['style'].file.read()))
+    content_img_obj = BytesIO(data['content'].file.read())
+    style_img_obj = BytesIO(data['style'].file.read())
 
-    content_img_obj = await resize_image(content_img_obj)
-    style_img_obj = await resize_image(style_img_obj)
-
-    stylized_img_obj = eval_func(content_img_obj, style_img_obj)
+    stylized_img_obj = await eval_func(content_img_obj, style_img_obj)
 
     await asyncio.sleep(2)
-    return web.Response(body=stylized_img_obj, content_type='image/jpeg')
+
+    try:
+        return web.Response(body=stylized_img_obj.getvalue(), content_type='image/jpeg')
+    finally:
+        stylized_img_obj.close()
 
 
 async def main():
