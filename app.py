@@ -6,7 +6,6 @@ from io import BytesIO
 
 import aiohttp_jinja2
 import jinja2
-from PIL import Image
 from aiogram import Bot, Dispatcher
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.dispatcher import FSMContext
@@ -123,15 +122,12 @@ async def waiting_for_content(msg: Message, state: FSMContext):
     await state.reset_data()
     style_io = BytesIO()
     await msg.photo[-1].download(style_io)
-
     await msg.answer('I got it. Now wait...')
 
     stylized_img_obj = await eval_func(content_io, style_io)
-
     stylized_img_obj.seek(0)
 
     await msg.answer("<b>Your result:</b>")
-
     await msg.answer_photo(stylized_img_obj)
 
     await state.finish()
@@ -242,7 +238,7 @@ async def main():
 
     runner = web.AppRunner(app)
     await runner.setup()
-    site = web.TCPSite(runner, "127.0.0.1", port=9000)
+    site = web.TCPSite(runner, "192.168.1.2")
     await bot.send_message(ADMIN_ID, 'Bot started. /start')
 
     tasks = [

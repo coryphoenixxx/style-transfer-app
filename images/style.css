@@ -1,19 +1,21 @@
 html {
   background-image:linear-gradient(#eee, #aaa);
-  height:100%;
+  /*height:100%;*/
 }
 
 #main {
     display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-wrap: wrap;
+    align-items: stretch;
+    justify-content: space-around;
+    flex-wrap: nowrap;
+    flex-direction: row;
 }
 
+
 .drop-zone {
-    /*max-width: 350px;*/
-    width: 350px;
-    height: 350px;
+    position: relative;
+    width: 25vw;
+    height: 25vw;
     display: flex;
     padding: 10px;
     align-items: center;
@@ -27,6 +29,7 @@ html {
     border: 4px dashed #009578;
     border-radius: 10px;
 }
+
 
 .drop-zone--over {
     border-style: solid;
@@ -64,8 +67,8 @@ html {
 .sign {
     display: flex;
     justify-content: center;
-    min-width: 150px;
-
+    align-items: center;
+    min-width: 50px;
 }
 
 .sign-text {
@@ -75,8 +78,8 @@ html {
 }
 
 #stylized {
-    width: 512px;
-    height: 512px;
+    width: 25vw;
+    height: 25vw;
     display: flex;
     padding: 10px;
     align-items: center;
@@ -93,4 +96,46 @@ html {
     background-repeat: no-repeat;
     background-position: center;
     position: relative;
+}
+
+#styles_container {
+    display: flex;
+    align-items: center;
+    justify-content: normal;
+    width: 25vw;
+    height: 130px;
+    border: 2px solid black;
+    position: relative;
+    overflow-x: scroll;
+}
+
+.style_box {
+    min-width: 100px;
+    min-height: 100px;
+    margin: 3px;
+    border: 2px solid black;
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+
+@media all and (max-width: 800px) {
+#main {
+    align-items: center;
+    flex-direction: column;
+}
+.drop-zone {
+    width: 40vw;
+    height: 40vw;
+}
+
+#stylized {
+    width: 40vw;
+    height: 40vw;
+}
+
+#styles_container {
+   width: 40vw;
+}
 }

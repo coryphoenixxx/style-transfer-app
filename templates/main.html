@@ -14,7 +14,7 @@
 
 <body>
     <div id="main">
-        <div>
+        <div class="element">
             <h3 id="sel_content">SELECT CONTENT</h3>
             <div class="drop-zone">
                 <span class="drop-zone__prompt">Drop image file here or click to upload</span>
@@ -26,11 +26,14 @@
             <h1 class="sign-text">+</h1>
         </div>
 
-        <div>
-            <h3 id="sel_style">SELECT STYLE</h3>
-            <div class="drop-zone">
+        <div class="element">
+            <h3>SELECT STYLE</h3>
+            <div class="drop-zone" id="sel_style">
                 <span class="drop-zone__prompt">Drop image file here or click to upload</span>
                 <input id="style" type="file" name="content" class="drop-zone__input" multiple>
+            </div>
+            <div id="styles_container">
+
             </div>
         </div>
 
@@ -38,8 +41,8 @@
             <h1 class="sign-text">=</h1>
         </div>
 
-        <div>
-            <button id="content_upload" type="submit" onclick="sendRequest()">STYLIZE</button>
+        <div class="element">
+            <button id="stylizeButton" type="submit" onclick="sendRequest()">STYLIZE</button>
             <div id="stylized">
                 <span class="drop-zone__prompt">RESULT</span>
             </div>
