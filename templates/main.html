@@ -13,12 +13,18 @@
 </head>
 
 <body>
+
+    <header>
+        <h1> SANET </h1>
+    </header>
+
+
     <div id="main">
-        <div class="element">
-            <h3 id="sel_content">SELECT CONTENT</h3>
+        <div class="sel-img-section">
+            <h3>SELECT CONTENT</h3>
             <div class="drop-zone">
                 <span class="drop-zone__prompt">Drop image file here or click to upload</span>
-                <input id='content' type="file" name="content" class="drop-zone__input" multiple>
+                <input type="file" class="drop-zone__input" multiple>
             </div>
         </div>
 
@@ -26,24 +32,22 @@
             <h1 class="sign-text">+</h1>
         </div>
 
-        <div class="element">
+        <div class="sel-img-section" id="style-section">
             <h3>SELECT STYLE</h3>
-            <div class="drop-zone" id="sel_style">
-                <span class="drop-zone__prompt">Drop image file here or click to upload</span>
-                <input id="style" type="file" name="content" class="drop-zone__input" multiple>
+            <div class="drop-zone" id="style-drop-zone">
+                <span class="drop-zone__prompt">Drop image file here, click to upload or select bottom</span>
+                <input type="file" class="drop-zone__input" multiple>
             </div>
-            <div id="styles_container">
-
-            </div>
+            <div id="styles-box"></div>
         </div>
 
         <div class="sign">
             <h1 class="sign-text">=</h1>
         </div>
 
-        <div class="element">
-            <button id="stylizeButton" type="submit" onclick="sendRequest()">STYLIZE</button>
-            <div id="stylized">
+        <div id="result-section">
+            <button id="stylize-btn" type="submit" onclick="sendRequest()">STYLIZE</button>
+            <div class="drop-zone" id="stylized-output-zone">
                 <span class="drop-zone__prompt">RESULT</span>
             </div>
         </div>

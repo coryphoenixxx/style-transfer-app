@@ -1,50 +1,80 @@
 html {
-  background-image:linear-gradient(#eee, #aaa);
-  /*height:100%;*/
+  background-image:linear-gradient(90deg, rgba(99,99,99,1) 0%, rgba(208,208,208,1) 100%);
+  height:100vh;
 }
 
 #main {
     display: flex;
-    align-items: stretch;
+    align-items: center;
     justify-content: space-around;
     flex-wrap: nowrap;
     flex-direction: row;
 }
 
 
-.drop-zone {
-    position: relative;
-    width: 25vw;
-    height: 25vw;
+.sel-img-section {
     display: flex;
-    padding: 10px;
     align-items: center;
-    justify-content: center;
-    text-align: center;
-    font-family: 'Quicksand', sans-serif;
-    font-weight: 800;
-    font-size: 20px;
-    cursor: pointer;
-    color: black;
-    border: 4px dashed #009578;
-    border-radius: 10px;
+    flex-direction: column;
+    width: 25vw;
 }
 
 
-.drop-zone--over {
+.drop-zone {
+    width: 25vw;
+    height: 25vw;
+    padding: 10px;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    /*font-family: 'Quicksand', sans-serif;*/
+    font-weight: 800;
+    font-size: 20px;
+    cursor: pointer;
+    background-color: darkgrey;
+    color: black;
+    border: 2px solid #636363;
+    border-radius: 10px;
+    box-shadow: rgba(0, 0, 0, 0.3) 0 19px 38px, rgba(0, 0, 0, 0.22) 0 15px 12px;
+    transition: 250ms;
+}
+
+
+.drop-zone__prompt {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    box-sizing: border-box;
+    padding: 40px;
+    width: 100%;
+    height: 100%;
+    border: 2px dashed #636363;
+    border-radius: 10px;
+    transition: 250ms;
+}
+
+.drop-zone__prompt--over {
     border-style: solid;
+    width: 90%;
+    height: 90%;
+    background-color: lightgrey;
 }
 
 .drop-zone__input {
     display: none;
 }
 
+
 .drop-zone__thumb {
+    box-shadow: rgba(50, 50, 93, 0.25) 0px 30px 60px -12px inset, rgba(0, 0, 0, 0.3) 0px 18px 36px -18px inset;
     width: 100%;
     height: 100%;
     border-radius: 10px;
     overflow: hidden;
-    background-color: #cccccc;
+    background-color: #79837f;
     background-size: contain;
     background-repeat: no-repeat;
     background-position: center;
@@ -64,6 +94,7 @@ html {
     text-align: center;
 }
 
+
 .sign {
     display: flex;
     justify-content: center;
@@ -77,47 +108,47 @@ html {
     font-family: 'Quicksand', sans-serif;
 }
 
-#stylized {
-    width: 25vw;
-    height: 25vw;
-    display: flex;
-    padding: 10px;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    font-family: 'Quicksand', sans-serif;
-    font-weight: 800;
-    font-size: 20px;
-    cursor: pointer;
-    color: black;
-    border: 4px dashed #009578;
-    border-radius: 10px;
-    background-size: contain;
-    background-repeat: no-repeat;
-    background-position: center;
-    position: relative;
+
+#style-section {
+    margin-top: 135px;
 }
 
-#styles_container {
+#styles-box {
+    margin-top: 5px;
     display: flex;
     align-items: center;
     justify-content: normal;
     width: 25vw;
     height: 130px;
     border: 2px solid black;
+    border-radius: 10px;
     position: relative;
-    overflow-x: scroll;
+    overflow-x: hidden;
 }
 
-.style_box {
+.style-elem {
     min-width: 100px;
-    min-height: 100px;
+    height: 100px;
     margin: 3px;
     border: 2px solid black;
     background-size: cover;
     background-repeat: no-repeat;
     background-position: center;
 }
+
+
+#result-section {
+    display: flex;
+    flex-direction: column;
+}
+
+
+#stylized-output-zone {
+    width: 30vw;
+    height: 30vw;
+    cursor: initial;
+}
+
 
 
 @media all and (max-width: 800px) {
@@ -130,12 +161,20 @@ html {
     height: 40vw;
 }
 
-#stylized {
-    width: 40vw;
-    height: 40vw;
+#stylized-output-zone {
+    width: 50vw;
+    height: 50vw;
 }
 
-#styles_container {
+#result-section {
+    margin-top: 5px;
+}
+
+#styles-box {
    width: 40vw;
+}
+
+#style-section {
+    margin-top: 0;
 }
 }
