@@ -24,27 +24,98 @@ function getBackgroundImageUrl(element) {
     return backgroundImage.slice(4, -1).replace(/"/g, "");
 }
 
-// Create selection style images box
-const styles_box = document.body.querySelector("#styles-box")
-for (let i=1; i<=20; i++) {
-    const style_elem = document.createElement('div');
-    const style_img_url = `images/default_style/default_style_${i}.jpg`;
-    style_elem.classList.add('style-elem');
-    style_elem.style.backgroundImage = `url(${ style_img_url })`;
+function calcSize(w, h) {
 
-    style_elem.addEventListener("click", e => {
-        const style_zone = document.getElementById('style-drop-zone');
-        const filename = `default_style_${i}.jpg`
-        urlToFile(style_img_url, filename)
-            .then(function(file) {updateThumbnail(style_zone, file)})
-    })
-    styles_box.appendChild(style_elem)
 }
 
-styles_box.addEventListener("wheel", e => {
-         e.preventDefault();
-         styles_box.scrollLeft += e.deltaY;
+// Create selection style images box
+// const styles_box = document.body.querySelector("#styles-box")
+// for (let i=1; i<=20; i++) {
+//     const styleElem = document.createElement('div');
+//     const styleImgUrl = `images/default_style/default_style_${i}.jpg`;
+//     styleElem.classList.add('style-elem');
+//     styleElem.style.backgroundImage = `url(${ styleImgUrl })`;
+//
+//     styleElem.addEventListener("click", e => {
+//         const styleZone = document.getElementById('style-drop-zone');
+//         const filename = `default_style_${i}.jpg`
+//         urlToFile(styleImgUrl, filename)
+//             .then(function(file) {updateThumbnail(styleZone, file)})
+//     })
+//     styles_box.appendChild(styleElem)
+// }
+//
+// styles_box.addEventListener("wheel", e => {
+//          e.preventDefault();
+//          styles_box.scrollLeft += e.deltaY;
+//     })
+
+
+function convertPXToVW(px) {
+	return px * (100 / document.documentElement.clientWidth);
+}
+
+
+const styles_box = document.body.querySelector("#style-drop-zone")
+for (let i=1; i<=20; i++) {
+    const styleElem = document.createElement('div');
+    styleElem.classList.add('style-elem');
+
+    const styleImgUrl = `images/default_style/default_style_${i}.jpg`;
+    styleElem.style.backgroundImage = `url(${ styleImgUrl })`;
+
+
+
+    styleElem.addEventListener("mouseover", e => {
+        let previewElem = document.createElement("div")
+        previewElem.style.backgroundImage = `url(${ styleImgUrl })`;
+        previewElem.classList.add("preview")
+        let offsets = styleElem.getBoundingClientRect()
+
+        let image = new Image();
+        image.src = styleImgUrl;
+
+        let w, h;
+
+        image.onload = function() {
+            w = image.width
+            h = image.height
+        }
+
+
+
+
+
+
+
+        previewElem.style.left = convertPXToVW(offsets.left) + 10 + 'vw'
+        previewElem.style.top = convertPXToVW(offsets.top) + -2 + 'vw'
+        previewElem.dataset.label = styleImgUrl;
+        document.body.appendChild(previewElem)
+
+        setTimeout(function () {
+            previewElem.style.visibility = 'visible'
+        }, 500)
     })
+
+    styleElem.addEventListener("mouseout", e => {
+        let previewElem = document.querySelector(".preview")
+        document.body.removeChild(previewElem)
+    })
+
+    // styleElem.addEventListener("click", e => {
+    //     const styleZone = document.getElementById('style-drop-zone');
+    //     const filename = `default_style_${i}.jpg`
+    //     urlToFile(styleImgUrl, filename)
+    //         .then(function(file) {updateThumbnail(styleZone, file)})
+    // })
+    styles_box.appendChild(styleElem)
+}
+
+// styles_box.addEventListener("wheel", e => {
+//          e.preventDefault();
+//          styles_box.scrollLeft += e.deltaY;
+//     })
 
 
 

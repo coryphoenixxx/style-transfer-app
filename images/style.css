@@ -4,6 +4,7 @@ html {
 }
 
 #main {
+    /*height: 80vh;*/
     display: flex;
     align-items: center;
     justify-content: space-around;
@@ -23,7 +24,7 @@ html {
 .drop-zone {
     width: 25vw;
     height: 25vw;
-    padding: 10px;
+    padding: 1vw;;
     box-sizing: border-box;
     display: flex;
     align-items: center;
@@ -35,10 +36,9 @@ html {
     cursor: pointer;
     background-color: darkgrey;
     color: black;
-    border: 2px solid #636363;
+    border: 0.1vw solid #636363;
     border-radius: 10px;
     box-shadow: rgba(0, 0, 0, 0.3) 0 19px 38px, rgba(0, 0, 0, 0.22) 0 15px 12px;
-    transition: 250ms;
 }
 
 
@@ -51,7 +51,7 @@ html {
     padding: 40px;
     width: 100%;
     height: 100%;
-    border: 2px dashed #636363;
+    border: 0.1vw dashed #636363;
     border-radius: 10px;
     transition: 250ms;
 }
@@ -69,7 +69,7 @@ html {
 
 
 .drop-zone__thumb {
-    box-shadow: rgba(50, 50, 93, 0.25) 0px 30px 60px -12px inset, rgba(0, 0, 0, 0.3) 0px 18px 36px -18px inset;
+    box-shadow: rgba(50, 50, 93, 0.25) 0 30px 60px -12px inset, rgba(0, 0, 0, 0.3) 0 18px 36px -18px inset;
     width: 100%;
     height: 100%;
     border-radius: 10px;
@@ -95,6 +95,74 @@ html {
 }
 
 
+.preview {
+    width: 25vw;
+    height: 25vw;
+    background-color: white;
+    position: absolute;
+    z-index: 50;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    visibility: hidden;
+}
+
+.preview::after {
+    content: attr(data-label);
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    padding: 5px 0;
+    color: #ffffff;
+    background: rgba(0, 0, 0, 0.75);
+    font-size: 14px;
+    text-align: center;
+}
+
+/*.preview:hover{*/
+/*    background-color: transparent;*/
+/*    z-index: 50;*/
+/*}*/
+
+/*.preview img {*/
+/*    min-width: 9.1vw;*/
+/*    height: 9.1vw;*/
+/*    margin: 0.3vw;*/
+/*    border: 0.1vw solid black;*/
+/*    box-sizing: border-box;*/
+/*}*/
+
+/*.preview span{*/
+/*    !*position: relative;*!*/
+/*    !*border: 2px solid black;*!*/
+/*    position: absolute;*/
+/*    background-color: lightyellow;*/
+/*    padding: 5px;*/
+/*    left: -1000px;*/
+/*    border: 1px dashed gray;*/
+/*    visibility: hidden;*/
+/*    color: black;*/
+/*    text-decoration: none;*/
+/*}*/
+
+/*.preview span img {*/
+/*    width: 200px;*/
+/*    height: 200px;*/
+/*    visibility: hidden;*/
+/*  !*CSS for enlarged image*!*/
+/*    border-width: 0;*/
+/*    padding: 2px;*/
+/*}*/
+
+/*.preview:hover span {*/
+/*  !*CSS for enlarged image on hover*!*/
+/*  visibility: visible;*/
+/*  top: -30px;*/
+/*  left: 30px; !*position where enlarged image should offset horizontally *!*/
+/*}*/
+
+
 .sign {
     display: flex;
     justify-content: center;
@@ -105,32 +173,63 @@ html {
 .sign-text {
     font-size: large;
     font-weight: bold;
-    font-family: 'Quicksand', sans-serif;
+    /*font-family: 'Quicksand', sans-serif;*/
 }
 
 
 #style-section {
-    margin-top: 135px;
+    /*margin-top: 125px;*/
 }
 
-#styles-box {
-    margin-top: 5px;
-    display: flex;
-    align-items: center;
-    justify-content: normal;
-    width: 25vw;
-    height: 130px;
-    border: 2px solid black;
-    border-radius: 10px;
+#style-drop-zone {
     position: relative;
-    overflow-x: hidden;
+    z-index: 1;
+    width: 32vw;
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: row;
+    border-radius: 10px 0 0 10px;
+    align-items: center;
+    justify-content: flex-start;
+    overflow-y: auto;
+}
+
+/*#styles-box {*/
+/*    margin-top: 5px;*/
+/*    display: flex;*/
+/*    align-items: center;*/
+/*    justify-content: normal;*/
+/*    width: 25vw;*/
+/*    height: 120px;*/
+/*    border: 2px solid black;*/
+/*    !*border-radius: 10px;*!*/
+/*    position: relative;*/
+/*    overflow-x: auto;*/
+/*    -webkit-overflow-scrolling: touch;*/
+/*}*/
+
+#style-drop-zone::-webkit-scrollbar {
+    width: 0.5vw;
+}
+
+#style-drop-zone::-webkit-scrollbar-track {
+    box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
+}
+
+#style-drop-zone::-webkit-scrollbar-thumb {
+    background-color: darkgrey;
+    outline: 0.1vw solid slategrey;
+    /*border: 1px solid black;*/
+    /*border-radius: 10px;*/
 }
 
 .style-elem {
-    min-width: 100px;
-    height: 100px;
-    margin: 3px;
-    border: 2px solid black;
+    z-index: 1;
+    min-width: 9.1vw;
+    height: 9.1vw;
+    margin: 0.3vw;
+    border: 0.1vw solid black;
+    box-sizing: border-box;
     background-size: cover;
     background-repeat: no-repeat;
     background-position: center;
