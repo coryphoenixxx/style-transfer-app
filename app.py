@@ -31,8 +31,8 @@ routes = web.RouteTableDef()
 
 style_choice_kb = InlineKeyboardMarkup(row_width=5)
 buttons = [InlineKeyboardButton(text=str(i), callback_data=f'style_{i}') for i in range(1, 21)]
-buttons.append(InlineKeyboardButton(text='Random', callback_data=f'style_random'))
-buttons.append(InlineKeyboardButton(text='All', callback_data=f'all'))
+buttons.append(InlineKeyboardButton(text='Random', callback_data='style_random'))
+buttons.append(InlineKeyboardButton(text='All', callback_data='all'))
 style_choice_kb.add(*buttons)
 
 cancel_kb = InlineKeyboardMarkup().add(InlineKeyboardButton(text='Cancel', callback_data='cancel'))
@@ -180,7 +180,7 @@ async def waiting_for_selection_style(call: CallbackQuery, state: FSMContext):
     await stylization_entry_point_handler(call.from_user.id)
 
 
-@dp.callback_query_handler(Text(startswith='all'), state=States.waiting_for_selection_style)
+@dp.callback_query_handler(Text(equals='all'), state=States.waiting_for_selection_style)
 async def waiting_for_selection_style(call: CallbackQuery, state: FSMContext):
     with suppress(*suppress_exceptions):
         await bot.edit_message_reply_markup(call.from_user.id, call.message.message_id)
@@ -200,8 +200,12 @@ async def waiting_for_selection_style(call: CallbackQuery, state: FSMContext):
         media.attach_photo(InputFile(stylized_io))
         await call.message.answer_media_group(media)
         media.clean()
-        await asyncio.sleep(2)
+        # await asyncio.sleep(2)
     await state.finish()
+
+
+
+
 
 
 @aiohttp_jinja2.template('main.html')
@@ -217,11 +221,10 @@ async def post_handler(request):
 
     stylized_img_obj = await eval_func(content_img_obj, style_img_obj)
 
-    await asyncio.sleep(2)
-
     try:
         return web.Response(body=stylized_img_obj.getvalue(), content_type='image/jpeg')
     finally:
+        print('FINISH')
         stylized_img_obj.close()
 
 
@@ -238,7 +241,7 @@ async def main():
 
     runner = web.AppRunner(app)
     await runner.setup()
-    site = web.TCPSite(runner, "192.168.1.2")
+    site = web.TCPSite(runner, "192.168.1.3")
     await bot.send_message(ADMIN_ID, 'Bot started. /start')
 
     tasks = [

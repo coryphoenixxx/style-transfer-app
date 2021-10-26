@@ -9,7 +9,7 @@ html {
     justify-content: space-around;
     flex-wrap: nowrap;
     flex-direction: row;
-    height: 80vh;
+    /*height: 80vh;*/
 }
 
 header {
@@ -31,8 +31,8 @@ header {
     align-items: center;
     justify-content: center;
     text-align: center;
-    font-weight: 800;
-    font-size: 20px;
+    font-weight: 900;
+    font-size: 2vw;
     background-color: darkgrey;
     color: black;
     border: 0.1vw solid #636363;
@@ -40,7 +40,7 @@ header {
     box-shadow: rgba(0, 0, 0, 0.3) 0 19px 38px, rgba(0, 0, 0, 0.22) 0 15px 12px;
 }
 
-.small-drop-zone {
+.drop-zone {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -57,8 +57,8 @@ header {
     text-align: center;
     box-sizing: border-box;
     padding: 2vw;
-    width: 95%;
-    height: 95%;
+    width: 90%;
+    height: 90%;
     border: 0.1vw dashed #636363;
     border-radius: 10px;
     transition: 250ms;
@@ -66,8 +66,8 @@ header {
 
 .drop-zone__prompt--over {
     border-style: solid;
-    width: 90%;
-    height: 90%;
+    width: 80%;
+    height: 80%;
     background-color: lightgrey;
 }
 
@@ -82,14 +82,14 @@ header {
     height: 100%;
     border-radius: 10px;
     overflow: hidden;
-    background-color: #79837f;
+    background-color: darkgrey;
     background-size: contain;
     background-repeat: no-repeat;
     background-position: center;
     position: relative;
 }
 
-.drop-zone__thumb::after{
+.drop-zone__thumb::after, .preview::after, .result_thumb::after{
     content: attr(data-label);
     position: absolute;
     bottom: 0;
@@ -100,13 +100,14 @@ header {
     background: rgba(0, 0, 0, 0.75);
     font-size: 14px;
     text-align: center;
+    overflow: hidden;
 }
 
 .sign {
     display: flex;
     justify-content: center;
     align-self: center;
-    min-width: 50px;
+    min-width: 2vw;
 }
 
 .image-element {
@@ -124,15 +125,16 @@ header {
 /****  CONTENT  ****/
 
 #content-drop-zone {
-    width: 25vw;
-    height: 25vw;
+    width: 20vw;
+    height: 20vw;
     box-shadow: rgba(0, 0, 0, 0.24) 0 3px 8px;
+    border: 0.1vw solid #636363;
 }
 
 #contents-box {
     border-radius: 10px 10px 0 0;
     box-shadow: rgba(0, 0, 0, 0.24) 0 3px 8px;
-    width: 25vw;
+    width: 20vw;
     margin-top: 1vw;
     padding: 0.2vw;
     position: relative;
@@ -165,6 +167,13 @@ header {
     min-width: 6vw;
     height: 6vw;
     margin: 0.3vw;
+    transition: 1000ms;
+}
+
+
+.content-img-elem__after {
+    min-width: 6vw;
+    height: 6vw;
 }
 
 
@@ -173,6 +182,7 @@ header {
 
 
 #style-select-box {
+    padding: 0;
     position: relative;
     display: flex;
     flex-wrap: wrap;
@@ -200,60 +210,105 @@ header {
 }
 
 .style-img-elem {
-    min-width: 9.125vw;
-    height: 9.125vw;
+    min-width: 9.7vw;
+    height: 9.7vw;
     margin: 0.3vw;
 }
 
 .style-img-elem-onclick {
-    border: 3px solid darkred;
+    border: 2px solid cornflowerblue;
+    box-shadow: rgba(0, 0, 0, 0.56) 0 22px 70px 4px;
 }
 
 .preview {
     background-color: white;
     position: absolute;
-    background-size: contain;
+    background-size: cover;
     background-repeat: no-repeat;
     background-position: center;
     visibility: hidden;
 }
 
-.preview::after {
-    content: attr(data-label);
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    padding: 5px 0;
-    color: #ffffff;
-    background: rgba(0, 0, 0, 0.75);
-    font-size: 14px;
-    text-align: center;
-}
-
-
 
 
 /**** RESULT ****/
 #result-section {
-    margin-top: 400px;
     display: flex;
-    flex-direction: column;
     align-items: center;
+    flex-direction: column;
 }
-
 
 
 .stylized-output-zone {
-    margin-top: -400px;
     width: 30vw;
-    height: 30vw;
-    cursor: initial;
+    height: 38vw;
+
+    /*padding: 1vw;*/
+}
+
+#results-box {
+    display: flex;
+    align-items: flex-start;
+    flex-direction: row;
+
+
+
+
+    width: 28vw;
+    height: 36vw;
+    border-radius: 10px 10px 0 0;
+    box-shadow: rgba(0, 0, 0, 0.24) 0 3px 8px;
+    padding: 0.2vw;
+    position: relative;
+
+    /*display: flex;*/
+    /*align-items: center;*/
+    /*justify-content: normal;*/
+
+    border: 0.1vw solid #636363;
+    box-sizing: border-box;
+
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+#results-box::-webkit-scrollbar {
+    height: 0.5vw;
+}
+
+#results-box::-webkit-scrollbar-track {
+    box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
+}
+
+#results-box::-webkit-scrollbar-thumb {
+    background-color: darkgrey;
+    outline: 0.1vw solid slategrey;
+}
+
+.result_thumb {
+    box-shadow: rgba(50, 50, 93, 0.25) 0 30px 60px -12px inset, rgba(0, 0, 0, 0.3) 0 18px 36px -18px inset;
+    border-radius: 10px;
+    overflow: hidden;
+    background-color: darkgrey;
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+    position: relative;
+    cursor: pointer;
+}
+
+#brain {
+    width: 10vw;
+    height: 10vw;
+    background: url("/images/brain.png");
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+
 }
 
 #stylize-btn {
-    margin-top: -420px;
-    position: absolute;
+    /*position: absolute;*/
 }
 
 

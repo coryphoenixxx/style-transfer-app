@@ -8,6 +8,7 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Главная</title>
 
+    <link rel="icon" type="image/png" href="/images/brain.png"/>
     <link rel="stylesheet" href="/images/style.css" />
 
 </head>
@@ -15,7 +16,7 @@
 <body>
 
     <header>
-        <h1>SANET</h1>
+        <h1>SANET</h1><div id="brain"></div>
     </header>
 
     <div id="main">
@@ -23,12 +24,12 @@
         <div class="sel-img-section">
             <h3>SELECT CONTENT</h3>
             <div class="card">
-                <div class="card" id="content-drop-zone">
-                    <span class="drop-zone__prompt">Drop image file(s) here or click to upload</span>
+                <div class=" card drop-zone" id="content-drop-zone">
+                    <span class="drop-zone__prompt">Drop image file here or click to upload</span>
                     <input type="file" class="drop-zone__input" multiple>
                 </div>
                 <div id="contents-box">
-                    <div class="small-drop-zone content-img-elem">
+                    <div class="drop-zone content-img-elem">
                         <h1 class="drop-zone__prompt">+</h1>
                         <input type="file" class="drop-zone__input" multiple>
                     </div>
@@ -44,7 +45,7 @@
             <h3>SELECT STYLE</h3>
             <div class="card">
                 <div class="card" id="style-select-box">
-                    <div class="small-drop-zone style-img-elem">
+                    <div class="drop-zone style-img-elem">
                         <h1 class="drop-zone__prompt">+</h1>
                         <input type="file" class="drop-zone__input" multiple>
                     </div>
@@ -57,9 +58,11 @@
         </div>
 
         <div id="result-section">
+            <h3>RESULT</h3>
             <button id="stylize-btn" type="submit" onclick="sendRequest()">STYLIZE</button>
             <div class="card stylized-output-zone">
-                <span>RESULT</span>
+                <div id="results-box">
+                </div>
             </div>
         </div>
     </div>
