@@ -1,6 +1,16 @@
+* {
+        margin: 0;
+    }
+
 html {
   background-image:linear-gradient(90deg, rgba(99,99,99,1) 0%, rgba(208,208,208,1) 100%);
   /*height:120vh;*/
+}
+
+body
+{
+ padding:0;
+ margin:0;
 }
 
 #main {
@@ -56,7 +66,6 @@ header {
     justify-content: center;
     text-align: center;
     box-sizing: border-box;
-    padding: 2vw;
     width: 90%;
     height: 90%;
     border: 0.1vw dashed #636363;
@@ -87,6 +96,7 @@ header {
     background-repeat: no-repeat;
     background-position: center;
     position: relative;
+    animation: appear 0.7s ease;
 }
 
 .drop-zone__thumb::after, .preview::after, .result_thumb::after{
@@ -111,8 +121,10 @@ header {
 }
 
 .image-element {
+    animation: appear 0.7s ease;
+    /*transition: 500ms;*/
     cursor: pointer;
-    border: 0.1vw solid #636363;
+    border: 0.2vw solid #636363;
     box-sizing: border-box;
     background-size: cover;
     background-repeat: no-repeat;
@@ -137,16 +149,16 @@ header {
     width: 20vw;
     margin-top: 1vw;
     padding: 0.2vw;
-    position: relative;
+    /*height: 10vw;*/
 
     display: flex;
     align-items: center;
-    justify-content: normal;
+    justify-content: flex-start;
 
     border: 0.1vw solid #636363;
     box-sizing: border-box;
 
-    overflow-y: auto;
+    overflow-x: scroll;
     -webkit-overflow-scrolling: touch;
 }
 
@@ -167,16 +179,19 @@ header {
     min-width: 6vw;
     height: 6vw;
     margin: 0.3vw;
-    transition: 1000ms;
 }
 
+@keyframes appear {
+    0% {
+        opacity: 0;
+        transform: scale(0.1);
+    }
 
-.content-img-elem__after {
-    min-width: 6vw;
-    height: 6vw;
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
 }
-
-
 
 /****  STYLE ****/
 
@@ -215,7 +230,7 @@ header {
     margin: 0.3vw;
 }
 
-.style-img-elem-onclick {
+.img-elem__onclick {
     border: 2px solid cornflowerblue;
     box-shadow: rgba(0, 0, 0, 0.56) 0 22px 70px 4px;
 }
@@ -243,7 +258,6 @@ header {
     width: 30vw;
     height: 38vw;
 
-    /*padding: 1vw;*/
 }
 
 #results-box {
@@ -251,19 +265,12 @@ header {
     align-items: flex-start;
     flex-direction: row;
 
-
-
-
     width: 28vw;
     height: 36vw;
     border-radius: 10px 10px 0 0;
     box-shadow: rgba(0, 0, 0, 0.24) 0 3px 8px;
     padding: 0.2vw;
     position: relative;
-
-    /*display: flex;*/
-    /*align-items: center;*/
-    /*justify-content: normal;*/
 
     border: 0.1vw solid #636363;
     box-sizing: border-box;

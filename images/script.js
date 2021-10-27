@@ -1,24 +1,30 @@
 "use strict";
 
-function urlToFile(url, filename){
-        return (fetch(url)
-            .then(function(res){return res.arrayBuffer();})
-            .then(function(buf){
-                return new File([buf], filename, { type: 'image/jpeg'}); })
-        );
-    }
+fetch("/getimages")
+    .then(function (response) {
+        return response.json();
+    }).then(function (images_urls) {
+        createContentsBox(images_urls['contents_urls']);
+        createStylesBox(images_urls['styles_urls']);
+})
 
 
 function PXToVW(px) {
 	return px * (100 / document.documentElement.clientWidth);
 }
 
+function fileToUrl(file, callback) {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => {
+        callback(reader.result)
+    }
+}
 
 function getBackgroundImageUrl(element) {
     const backgroundImage = element.style.backgroundImage;
     return backgroundImage.slice(4, -1).replace(/"/g, "");
 }
-
 
 function download(url) {
     const thumbnailElements = document.body.querySelectorAll(".drop-zone__thumb")
@@ -33,21 +39,17 @@ function download(url) {
 
 
 function setBackgroundImageByFile(element, file) {
-    if (file.type.startsWith('image/')) {
+    if (file.type.startsWith('image/')) { // TODO: what if not image?
         const reader = new FileReader();
         reader.readAsDataURL(file);
 
-        let image = new Image();
-
         reader.onload = () => {
-            image.src = reader.result;
             element.style.backgroundImage = `url('${reader.result}')`;
         };
     }
 }
 
-
-function updateThumbnail(dropZoneElement, file) {
+function updateThumbnail(dropZoneElement, image, name) {
     let thumbnailElement = dropZoneElement.querySelector(".drop-zone__thumb");
 
     // First time - remove the prompt
@@ -62,23 +64,13 @@ function updateThumbnail(dropZoneElement, file) {
         dropZoneElement.appendChild(thumbnailElement);
     }
 
-    thumbnailElement.dataset.label = file.name;
-
-    setBackgroundImageByFile(thumbnailElement, file)
-}
-
-
-function createContentImgElement(file) {
-    const contentElem = document.createElement('div');
-    contentElem.classList.add('image-element', 'content-img-elem');
-    setBackgroundImageByFile(contentElem, file)
-
-    contentElem.addEventListener("click", e => {
-        const contentZone = document.getElementById('content-drop-zone');
-        updateThumbnail(contentZone, file)
-    })
-
-    return contentElem;
+    if (typeof image === 'string') {
+        thumbnailElement.dataset.label = name;
+        thumbnailElement.style.backgroundImage = `url('${image}')`;
+    } else {
+        thumbnailElement.dataset.label = image.name;
+        setBackgroundImageByFile(thumbnailElement, image)
+    }
 }
 
 
@@ -94,26 +86,20 @@ function getNewSizes(width, height) {
         new_width = defaultSize;
         new_height = defaultSize / ratio;
     }
-
     return [new_width, new_height]
 }
 
 
-function displayPreview(styleElem, file) {
-    let previewElem = document.createElement("div")
-    previewElem.classList.add("preview")
+function displayPreview(styleElem, url) {
+    const previewElem = document.createElement("div");
+    previewElem.classList.add("preview");
 
-    let offsets = styleElem.getBoundingClientRect()
+    const offsets = styleElem.getBoundingClientRect();
 
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
+    let image = new Image();
 
-    reader.onload = () => {
-        let image = new Image();
-        let new_width, new_height;
-        image.src = reader.result;
-
-        [new_width, new_height] = getNewSizes(image.width, image.height)
+    image.onload = () => {
+        let [new_width, new_height] = getNewSizes(image.width, image.height)
 
         previewElem.style.width = new_width + 'vw'
         previewElem.style.height = new_height + 'vw'
@@ -126,87 +112,110 @@ function displayPreview(styleElem, file) {
             previewElem.style.top = PXToVW(offsets.top) - 16 + 'vw'
         }
 
-        previewElem.style.backgroundImage = `url('${reader.result}')`;
+        previewElem.style.backgroundImage = `url('${url}')`;
 
-        previewElem.dataset.label = file.name;
+        previewElem.dataset.label = styleElem.dataset.label;
     }
+
+    image.src = url;
+
+    document.body.appendChild(previewElem)
 
     setTimeout(function () {
         previewElem.style.visibility = 'visible'
     }, 750)
-
-    document.body.appendChild(previewElem)
 }
 
 
-const contentsBox = document.body.querySelector("#contents-box")
-for (let i=1; i<=6; i++) {
-    const contentImgUrl = `images/default_content/default_content_${i}.jpg`;
-    const filename = `default_content_${i}.jpg`
+function urlToFile(url, filename){
+        return (fetch(url)
+            .then(function(res){
+                return res.arrayBuffer();})
+                .then(function(buf){
+                    return new File([buf], filename, { type: 'image/jpeg'}); })
+        );
+    }
 
-    urlToFile(contentImgUrl, filename)
-            .then(function(file) {
-                const contentElem = createContentImgElement(file)
-                contentsBox.appendChild(contentElem)
+
+function createContentImgElement(url, name) {
+    const contentImgElement = document.createElement('div');
+    contentImgElement.classList.add('image-element', 'content-img-elem');
+    contentImgElement.style.backgroundImage = `url('${url}')`;
+
+    contentImgElement.addEventListener("click", e => {
+        const contentZone = document.getElementById('content-drop-zone');
+        updateThumbnail(contentZone, url, name);
+
+        document.querySelectorAll('.content-img-elem').forEach(elem => {
+            elem.classList.remove('img-elem__onclick');
+        })
+        contentImgElement.classList.add("img-elem__onclick");
     })
+    return contentImgElement;
 }
-contentsBox.addEventListener("wheel", e => {
-         e.preventDefault();
-         contentsBox.scrollLeft += e.deltaY;
+
+
+function createContentsBox(urls) {
+    const contentsBox = document.getElementById("contents-box");
+    for (let url of urls) {
+        let name = url.split('/').pop();
+        const contentImgElement = createContentImgElement(url, name);
+        contentsBox.appendChild(contentImgElement);
+        }
+
+    contentsBox.addEventListener("wheel", e => {
+             e.preventDefault();
+             contentsBox.scrollLeft += e.deltaY;
+        })
+}
+
+function createStylesBox(urls) {
+    const stylesBox = document.getElementById("style-select-box");
+    for (let url of urls) {
+        let name = url.split('/').pop();
+        const styleImgElement = createStyleImgElement(url, name);
+        stylesBox.appendChild(styleImgElement);
+    }
+}
+
+function createStyleImgElement(url, name) {
+    const styleImgElement = document.createElement('div');
+    styleImgElement.dataset.label = name;
+    styleImgElement.classList.add('image-element', 'style-img-elem');
+    styleImgElement.style.backgroundImage = `url('${url}')`;
+
+    styleImgElement.addEventListener("mouseover", e => {
+        displayPreview(styleImgElement, url)
     })
 
-
-
-function createStyleImgElement(file) {
-    const styleElem = document.createElement('div');
-    styleElem.classList.add('image-element', 'style-img-elem');
-    setBackgroundImageByFile(styleElem, file)
-
-    styleElem.addEventListener("mouseover", e => {
-        displayPreview(styleElem, file)
-    })
-
-    styleElem.addEventListener("mouseout", e => {
-        let previewElem = document.querySelector(".preview")
+    styleImgElement.addEventListener("mouseout", e => {
+        const previewElem = document.querySelector(".preview")
         document.body.removeChild(previewElem)
     })
 
-    styleElem.addEventListener('click', e => {
-        if (styleElem.classList.contains("style-img-elem-onclick")) {
-            styleElem.classList.remove("style-img-elem-onclick")
+    styleImgElement.addEventListener('click', e => {
+        if (styleImgElement.classList.contains("img-elem__onclick")) {
+            styleImgElement.classList.remove("img-elem__onclick")
             return;
         }
-        styleElem.classList.add("style-img-elem-onclick")
-
+        styleImgElement.classList.add("img-elem__onclick")
     })
-
-    return styleElem;
-}
-
-
-const stylesBox = document.body.querySelector("#style-select-box")
-for (let i=1; i<=20; i++) {
-    const styleImgUrl = `images/default_style/default_style_${i}.jpg`;
-    const filename = `default_style_${i}.jpg`
-
-    urlToFile(styleImgUrl, filename)
-            .then(function (file) {
-                const styleElem = createStyleImgElement(file)
-                stylesBox.appendChild(styleElem)
-            })
+    return styleImgElement;
 }
 
 function insertUploadImages(smallDropZoneElement, files) {
     const imageBox = smallDropZoneElement.parentElement;
     for (let file of files) {
         if (file.type.startsWith('image/')) {
-            if (imageBox.id === "contents-box") {
-                let newImgElement = createContentImgElement(file)
-                imageBox.insertBefore(newImgElement, imageBox.childNodes[2])
-            } else {
-                let newImgElement = createStyleImgElement(file)
-                imageBox.insertBefore(newImgElement, imageBox.childNodes[2])
-            }
+                fileToUrl(file, function (url) {
+                    if (imageBox.id === "contents-box") {
+                        let newImgElement = createContentImgElement(url, file.name)
+                        imageBox.insertBefore(newImgElement, imageBox.childNodes[2])
+                    } else {
+                        let newImgElement = createStyleImgElement(url, file.name)
+                        imageBox.insertBefore(newImgElement, imageBox.childNodes[2])
+                    }
+                })
         }
     }
 }
@@ -223,6 +232,10 @@ document.querySelectorAll(".drop-zone").forEach(dropZoneElement => {
         if (inputElement.files.length) {
             if (dropZoneElement.id === 'content-drop-zone') {
                 updateThumbnail(dropZoneElement, inputElement.files[0]);
+                const contentsBox = document.getElementById('contents-box')
+                const smallDropZone = contentsBox.querySelector('.drop-zone')
+
+                insertUploadImages(smallDropZone, inputElement.files);
             } else {
                 insertUploadImages(dropZoneElement, inputElement.files);
             }
@@ -230,8 +243,8 @@ document.querySelectorAll(".drop-zone").forEach(dropZoneElement => {
     })
 
     dropZoneElement.addEventListener("dragover", e => {
-        e.preventDefault()
-        promptElement.classList.add("drop-zone__prompt--over")
+        e.preventDefault();
+        promptElement.classList.add("drop-zone__prompt--over");
     })
 
     dropZoneElement.addEventListener("dragleave", e => {
@@ -242,7 +255,6 @@ document.querySelectorAll(".drop-zone").forEach(dropZoneElement => {
         promptElement.classList.remove("drop-zone__prompt--over");
     })
 
-
     dropZoneElement.addEventListener("drop", e => {
         e.preventDefault();
         if (e.dataTransfer.files.length) {
@@ -252,16 +264,12 @@ document.querySelectorAll(".drop-zone").forEach(dropZoneElement => {
                 insertUploadImages(dropZoneElement, e.dataTransfer.files);
             }
         }
-
         promptElement.classList.remove("drop-zone__prompt--over");
     });
-
 })
-
 
 function createResultElement() {
     let thumb = document.createElement("div")
-    thumb.style.backgroundImage = "url('images/loader.gif')"
     thumb.classList.add('result_thumb');
     return thumb;
 }
@@ -275,20 +283,18 @@ function getImageSize(url) {
     });
 }
 
-
 async function sendRequest() {
-    let contentImageThumb = document.body.querySelectorAll('.drop-zone__thumb')[0]
-    let contentImageUrl = getBackgroundImageUrl(contentImageThumb)
+    const contentImageThumb = document.body.querySelectorAll('.drop-zone__thumb')[0];
+    const contentImageUrl = getBackgroundImageUrl(contentImageThumb);
 
-    let w, h;
-    [w, h] = await getImageSize(contentImageUrl);
+    const [w, h] = await getImageSize(contentImageUrl);
+    const [new_w, new_h] = getNewSizes(w, h);
 
-    let [new_w, new_h] = getNewSizes(w, h)
+    const contentFile = await urlToFile(contentImageUrl, 'content.jpg')
 
+    let styleBox = document.getElementById('style-select-box')
+    let selectedStyleElements = styleBox.querySelectorAll('.img-elem__onclick')
 
-    let contentFile = await urlToFile(contentImageUrl, 'content.jpg')
-
-    let selectedStyleElems = document.querySelectorAll('.style-img-elem-onclick')
 
     let resultsBox = document.getElementById('results-box')
 
@@ -297,22 +303,20 @@ async function sendRequest() {
          resultsBox.scrollLeft += e.deltaY;
     })
 
-    for (let i=0; i<selectedStyleElems.length; i++) {
+    for (let i=0; i<selectedStyleElements.length; i++) {
 
-        let styleImageUrl = getBackgroundImageUrl(selectedStyleElems[i])
+        let styleImageUrl = getBackgroundImageUrl(selectedStyleElements[i])
 
 
         let styleFile = await urlToFile(styleImageUrl, 'style.jpg')
 
-
-        // if (typeof content == "undefined" || typeof style == "undefined") return;
+        // TODO: check existing content and style image
 
         let thumb = createResultElement()
         thumb.style.minWidth = new_w + 'vw'
         thumb.style.height = new_h + 'vw'
 
         resultsBox.appendChild(thumb)
-
 
         const data = new FormData();
         data.append("content", contentFile);

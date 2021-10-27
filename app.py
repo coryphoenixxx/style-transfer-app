@@ -3,6 +3,7 @@ import os
 import random
 from contextlib import suppress
 from io import BytesIO
+from pathlib import Path, PurePosixPath
 
 import aiohttp_jinja2
 import jinja2
@@ -23,6 +24,13 @@ suppress_exceptions = (AttributeError, MessageNotModified, MessageToEditNotFound
 
 API_TOKEN = os.getenv('API_TOKEN')
 ADMIN_ID = os.getenv('ADMIN_ID')
+
+CONTENTS_DIR = Path('images/default_content/')
+STYLES_DIR = Path('images/default_style/')  # TODO: make as files list
+
+
+CONTENTS_PATHS = [x.as_posix() for x in CONTENTS_DIR.glob('*.jpg')]
+STYLES_PATHS = [x.as_posix() for x in STYLES_DIR.glob('*.jpg')]
 
 bot = Bot(token=API_TOKEN, parse_mode=ParseMode.HTML)
 storage = MemoryStorage()
@@ -200,17 +208,19 @@ async def waiting_for_selection_style(call: CallbackQuery, state: FSMContext):
         media.attach_photo(InputFile(stylized_io))
         await call.message.answer_media_group(media)
         media.clean()
-        # await asyncio.sleep(2)
+
     await state.finish()
-
-
-
-
 
 
 @aiohttp_jinja2.template('main.html')
 async def get_handler(request: Request):
-    return
+    return {}
+
+
+async def get_images_handler(request: Request):
+    images_urls = {'contents_urls': [x.as_posix() for x in CONTENTS_DIR.glob('*.jpg')],
+                   'styles_urls': [x.as_posix() for x in STYLES_DIR.glob('*.jpg')]}
+    return web.json_response(images_urls)
 
 
 async def post_handler(request):
@@ -236,12 +246,13 @@ async def main():
     )
 
     app.add_routes([web.get(path='/', handler=get_handler),
+                    web.get(path='/getimages', handler=get_images_handler),
                     web.post(path='/', handler=post_handler),
                     web.static(prefix='/images', path='images', show_index=True)])
 
     runner = web.AppRunner(app)
     await runner.setup()
-    site = web.TCPSite(runner, "192.168.1.3")
+    site = web.TCPSite(runner, "192.168.1.2")
     await bot.send_message(ADMIN_ID, 'Bot started. /start')
 
     tasks = [
