@@ -9,6 +9,33 @@ fetch("/getimages")
 })
 
 
+const contentsBox = document.getElementById('contents-box');
+const stylizedOutputZone = document.getElementById('stylized-output-zone');
+const resultsBox = document.getElementById('results-box');
+const stylesBox = document.getElementById("style-select-box");
+
+
+const scrollBoxes = [contentsBox, stylizedOutputZone, resultsBox]
+let boxScrollPct = 0;
+let ignoreScroll = false;
+scrollBoxes.forEach(scrollBox =>
+    scrollBox.addEventListener('scroll', ({ target: t }) => {
+    if (ignoreScroll) return;
+    boxScrollPct = t.scrollLeft / (t.scrollWidth - t.clientWidth);
+}));
+
+let timeOutId = null;
+
+window.addEventListener('resize', e => {
+  ignoreScroll = true;
+  scrollBoxes.forEach(scrollBox =>
+      scrollBox.scrollLeft = boxScrollPct * (scrollBox.scrollWidth - scrollBox.clientWidth));
+      clearTimeout(timeOutId);
+      timeOutId = setTimeout(() => {
+          ignoreScroll = false;
+          }, 100);
+});
+
 function PXToVW(px) {
 	return px * (100 / document.documentElement.clientWidth);
 }
@@ -26,7 +53,11 @@ function getBackgroundImageUrl(element) {
     return backgroundImage.slice(4, -1).replace(/"/g, "");
 }
 
-function download(url) {
+document.addEventListener('scroll', e => {
+
+})
+
+function downloadImage(url) {
     const thumbnailElements = document.body.querySelectorAll(".drop-zone__thumb")
     const contentFilename = thumbnailElements[0].dataset.label
     const link = document.createElement('a');
@@ -156,7 +187,6 @@ function createContentImgElement(url, name) {
 
 
 function createContentsBox(urls) {
-    const contentsBox = document.getElementById("contents-box");
     for (let url of urls) {
         let name = url.split('/').pop();
         const contentImgElement = createContentImgElement(url, name);
@@ -170,7 +200,6 @@ function createContentsBox(urls) {
 }
 
 function createStylesBox(urls) {
-    const stylesBox = document.getElementById("style-select-box");
     for (let url of urls) {
         let name = url.split('/').pop();
         const styleImgElement = createStyleImgElement(url, name);
@@ -232,7 +261,6 @@ document.querySelectorAll(".drop-zone").forEach(dropZoneElement => {
         if (inputElement.files.length) {
             if (dropZoneElement.id === 'content-drop-zone') {
                 updateThumbnail(dropZoneElement, inputElement.files[0]);
-                const contentsBox = document.getElementById('contents-box')
                 const smallDropZone = contentsBox.querySelector('.drop-zone')
 
                 insertUploadImages(smallDropZone, inputElement.files);
@@ -270,7 +298,7 @@ document.querySelectorAll(".drop-zone").forEach(dropZoneElement => {
 
 function createResultElement() {
     let thumb = document.createElement("div")
-    thumb.classList.add('result_thumb');
+    thumb.classList.add('result-thumb');
     return thumb;
 }
 
@@ -283,40 +311,70 @@ function getImageSize(url) {
     });
 }
 
+function selectAllStyles() {
+    document.body.querySelectorAll('.style-img-elem').forEach(styleImgElement => {
+        styleImgElement.classList.add("img-elem__onclick")
+    })
+}
+
+function cancelSelectedStyles() {
+    document.body.querySelectorAll('.style-img-elem').forEach(styleImgElement => {
+        styleImgElement.classList.remove("img-elem__onclick")
+    })
+}
+
+function scrollToLast() {
+    const container = document.getElementById('stylized-output-zone');
+    const tags = container.getElementsByTagName('div');
+    container.scrollLeft = tags[tags.length-1].offsetLeft;
+}
+
+function scrollToIndex(index) {
+    const resultThumbs = document.querySelectorAll('.result-thumb');
+    resultThumbs[index].scrollIntoView()
+}
+
 async function sendRequest() {
+    const stylizeBtn = document.getElementById('stylize-btn');
+    stylizeBtn.classList.add('stylize-btn__onclick')
+
     const contentImageThumb = document.body.querySelectorAll('.drop-zone__thumb')[0];
     const contentImageUrl = getBackgroundImageUrl(contentImageThumb);
 
-    const [w, h] = await getImageSize(contentImageUrl);
-    const [new_w, new_h] = getNewSizes(w, h);
+    // const [w, h] = await getImageSize(contentImageUrl);
+    // const [new_w, new_h] = getNewSizes(w, h);
 
     const contentFile = await urlToFile(contentImageUrl, 'content.jpg')
 
-    let styleBox = document.getElementById('style-select-box')
-    let selectedStyleElements = styleBox.querySelectorAll('.img-elem__onclick')
+    const styleBox = document.getElementById('style-select-box')
+    const selectedStyleElements = styleBox.querySelectorAll('.img-elem__onclick')
 
-
-    let resultsBox = document.getElementById('results-box')
+    // TODO: check existing content and style image
 
     resultsBox.addEventListener("wheel", e => {
          e.preventDefault();
          resultsBox.scrollLeft += e.deltaY;
     })
 
-    for (let i=0; i<selectedStyleElements.length; i++) {
+    const resultThumbs = stylizedOutputZone.querySelectorAll('.result-thumb')
+    if (resultThumbs) {
+        resultThumbs.forEach(thumb => stylizedOutputZone.removeChild(thumb))
+    }
 
-        let styleImageUrl = getBackgroundImageUrl(selectedStyleElements[i])
+    const styleImageElements = resultsBox.querySelectorAll('.image-element')
+    if (styleImageElements) {
+        styleImageElements.forEach( style => resultsBox.removeChild(style))
+    }
 
+    for (let selectedStyleElement of selectedStyleElements) {
+
+        let styleImageUrl = getBackgroundImageUrl(selectedStyleElement)
 
         let styleFile = await urlToFile(styleImageUrl, 'style.jpg')
 
-        // TODO: check existing content and style image
-
-        let thumb = createResultElement()
-        thumb.style.minWidth = new_w + 'vw'
-        thumb.style.height = new_h + 'vw'
-
-        resultsBox.appendChild(thumb)
+        let resultThumb = createResultElement()
+        // thumb.style.minWidth = new_w + 'vw'
+        // thumb.style.height = new_h + 'vw'
 
         const data = new FormData();
         data.append("content", contentFile);
@@ -327,21 +385,45 @@ async function sendRequest() {
             body: data
         }).then(response => {response.arrayBuffer()
             .then(stylizedImage => {
+                const styleImg = selectedStyleElement.cloneNode(true)
+                styleImg.classList.remove('style-img-elem', 'img-elem__onclick')
+                styleImg.classList.add('content-img-elem', 'result-style-img')
+
+
+                // styleImg.addEventListener('click', e => {
+                //     const index = Array.from(styleImg.parentNode.children).indexOf(styleImg)
+                //     scrollToIndex(index)
+                // })
+
+                resultsBox.appendChild(styleImg)
+
                 const arrayBufferView = new Uint8Array(stylizedImage);
                 const blob = new Blob([arrayBufferView], {type: 'image/jpeg'});
                 const urlCreator = window.URL || window.webkitURL;
                 const imageUrl = urlCreator.createObjectURL(blob);
 
-                thumb.style.backgroundImage = `url('${imageUrl}')`;
-                thumb.dataset.label = 'CLICK TO DOWNLOAD';
+                resultThumb.style.backgroundImage = `url('${imageUrl}')`;
+                resultThumb.dataset.label = 'CLICK TO DOWNLOAD';
 
-                thumb.addEventListener('click', e => {
-                    download(imageUrl);
+                stylizedOutputZone.appendChild(resultThumb);
+
+                resultThumb.addEventListener('click', e => {
+                    downloadImage(imageUrl);
                 })
 
-
-            })
+                scrollToLast()
+            }).then( a => {
+                document.body.querySelectorAll('.result-style-img').forEach(styleImgElement => {
+                styleImgElement.addEventListener('click', e => {
+                    const index = Array.from(styleImgElement.parentNode.children).indexOf(styleImgElement)
+                    scrollToIndex(index)
+                    })
+                })
+                }
+            )
         })
     }
+
+    stylizeBtn.classList.remove('stylize-btn__onclick');
 }
 
