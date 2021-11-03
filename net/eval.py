@@ -5,6 +5,7 @@ from torchvision import transforms
 from torchvision.utils import save_image
 
 from .loader import *
+from .utils import resize_image
 
 
 def calc(number):
@@ -14,25 +15,6 @@ def calc(number):
 def style_transform(size):
     return transforms.Compose([transforms.Resize((calc(size[1]), calc(size[0]))),
                                transforms.ToTensor()])
-
-
-MAX_IMAGE_SIZE = 1280
-
-
-async def resize_image(img_obj: Image):
-    width, height = img_obj.width, img_obj.height
-
-    if width > MAX_IMAGE_SIZE or height > MAX_IMAGE_SIZE:
-        if width > height:
-            new_width = MAX_IMAGE_SIZE
-            new_height = MAX_IMAGE_SIZE * height // width
-        else:
-            new_width = MAX_IMAGE_SIZE * width // height
-            new_height = MAX_IMAGE_SIZE
-
-        img_obj = img_obj.resize((new_width, new_height))
-        return img_obj
-    return img_obj
 
 
 async def eval_func(content_io, style_io):

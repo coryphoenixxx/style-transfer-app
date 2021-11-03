@@ -3,7 +3,8 @@ import os
 import random
 from contextlib import suppress
 from io import BytesIO
-from pathlib import Path, PurePosixPath
+from pathlib import Path
+from PIL import Image
 
 import aiohttp_jinja2
 import jinja2
@@ -19,54 +20,65 @@ from aiohttp import web
 from aiohttp.web_request import Request
 
 from net.eval import eval_func
+from net.utils import chunks, draw_number
 
 suppress_exceptions = (AttributeError, MessageNotModified, MessageToEditNotFound, MessageCantBeEdited)
 
 API_TOKEN = os.getenv('API_TOKEN')
 ADMIN_ID = os.getenv('ADMIN_ID')
 
-CONTENTS_DIR = Path('images/default_content/')
-STYLES_DIR = Path('images/default_style/')  # TODO: make as files list
+IMAGES_DIR = Path('static/images')
+CONTENTS_DIR = IMAGES_DIR / 'contents_presets'
+STYLES_DIR = IMAGES_DIR / 'styles_presets'
 
-
-CONTENTS_PATHS = [x.as_posix() for x in CONTENTS_DIR.glob('*.jpg')]
-STYLES_PATHS = [x.as_posix() for x in STYLES_DIR.glob('*.jpg')]
+CONTENTS_PATHS = [path.as_posix() for path in CONTENTS_DIR.glob('*.jpg')]
+STYLES_PATHS = [path.as_posix() for path in STYLES_DIR.glob('*.jpg')]
 
 bot = Bot(token=API_TOKEN, parse_mode=ParseMode.HTML)
 storage = MemoryStorage()
 dp = Dispatcher(bot, storage=storage)
 routes = web.RouteTableDef()
 
+cancel_kb = InlineKeyboardMarkup().add(InlineKeyboardButton(text='Cancel', callback_data='cancel'))
+
+content_choice_kb = InlineKeyboardMarkup(row_width=3)
+buttons = [InlineKeyboardButton(text=str(i), callback_data=f'content_{i}') for i in range(1, len(CONTENTS_PATHS) + 1)]
+content_choice_kb.add(*buttons)
+
+content_type_choice_kb = InlineKeyboardMarkup(row_width=2)
+content_type_choice_kb.add(InlineKeyboardButton(text='Show Content Presets', callback_data='content_presets'))
+content_type_choice_kb.add(InlineKeyboardButton(text='Cancel', callback_data='cancel'))
+
 style_choice_kb = InlineKeyboardMarkup(row_width=5)
-buttons = [InlineKeyboardButton(text=str(i), callback_data=f'style_{i}') for i in range(1, 21)]
+buttons = [InlineKeyboardButton(text=str(i), callback_data=f'style_{i}') for i in range(1, len(STYLES_PATHS) + 1)]
 buttons.append(InlineKeyboardButton(text='Random', callback_data='style_random'))
 buttons.append(InlineKeyboardButton(text='All', callback_data='all'))
 style_choice_kb.add(*buttons)
 
-cancel_kb = InlineKeyboardMarkup().add(InlineKeyboardButton(text='Cancel', callback_data='cancel'))
-
 style_type_choice_kb = InlineKeyboardMarkup(row_width=2)
-style_type_choice_kb.add(InlineKeyboardButton(text='Send My Style Image', callback_data='user_style'))
-style_type_choice_kb.add(InlineKeyboardButton(text='Choose Prepared Style Images', callback_data='prep_style'))
+style_type_choice_kb.add(InlineKeyboardButton(text='Show Style Presets', callback_data='style_presets'))
+style_type_choice_kb.add(InlineKeyboardButton(text='Cancel', callback_data='cancel'))
 
 
 class States(StatesGroup):
-    waiting_for_content = State()
+    waiting_for_user_content = State()
     waiting_for_user_style = State()
-    waiting_for_selection_style = State()
 
 
 async def stylization_entry_point_handler(user_id):
-    await States.waiting_for_content.set()
-    await bot.send_message(user_id, text='<b>❗ Send me an image for stylization!</b>', reply_markup=cancel_kb)
+    await States.waiting_for_user_content.set()
+    await bot.send_message(user_id,
+                           text='<b>❗ Send me an image for stylization or press for selection from the presets.</b>',
+                           reply_markup=content_type_choice_kb)
 
 
+# BOT HANDLERS
 @dp.message_handler(commands=["start"])
 async def cmd_start(msg: Message):
-    await msg.answer("<b>Hi! I'm a style transfer bot."
-                     "\n(SANet implementation: https://arxiv.org/pdf/1812.02342.pdf)"
-                     "\n\nI can stylize your images.</b>")
-    await msg.answer_photo(InputFile('images/welcome.jpg'))
+    await msg.answer("<b>❗ Hi!"
+                     "\nI'm a style transfer bot."
+                     "\nI can stylize your images.</b>")
+    await msg.answer_photo(InputFile(IMAGES_DIR / 'welcome.jpg'))
     await stylization_entry_point_handler(msg.from_user.id)
 
 
@@ -75,7 +87,7 @@ async def preparation_handler(msg: Message):
     await stylization_entry_point_handler(msg.from_user.id)
 
 
-@dp.callback_query_handler(Text(equals='cancel'), state=States.waiting_for_content)
+@dp.callback_query_handler(Text(equals='cancel'), state=States.waiting_for_user_content)
 async def cmd_cancel(call: CallbackQuery, state: FSMContext):
     if await state.get_state() is None:
         return
@@ -87,7 +99,7 @@ async def cmd_cancel(call: CallbackQuery, state: FSMContext):
     await call.message.answer("<b>❗ Ok. If you want to try again then enter /stylize.</b>")
 
 
-@dp.message_handler(state=States.waiting_for_content, content_types=['photo'])
+@dp.message_handler(state=States.waiting_for_user_content, content_types=['photo'])
 async def waiting_for_content(msg: Message, state: FSMContext):
     with suppress(*suppress_exceptions):
         await bot.delete_message(msg.from_user.id, msg.message_id - 1)
@@ -96,10 +108,53 @@ async def waiting_for_content(msg: Message, state: FSMContext):
     await msg.photo[-1].download(content_io)
     await state.update_data(user_content=content_io)
 
-    await msg.answer("<b>❗ What's next?</b>", reply_markup=style_type_choice_kb)
+    await msg.answer(text="<b>❗ Ok, I got it. Now send me a style image or press for selection from the presets.</b>",
+                     reply_markup=style_type_choice_kb)
+    await States.waiting_for_user_style.set()
 
 
-# @dp.message_handler(state=States.waiting_for_content, content_types=['document'])
+@dp.callback_query_handler(Text(equals='content_presets'), state=States.waiting_for_user_content)
+async def send_content_presets(call: CallbackQuery):
+    with suppress(*suppress_exceptions):
+        await bot.delete_message(call.from_user.id, call.message.message_id)
+
+    await call.message.answer("<b>❗ CONTENT PRESETS:</b>")
+    media = MediaGroup()
+    index = 0
+    for chunk in chunks(CONTENTS_PATHS, 10):
+        for path in chunk:
+            index += 1
+            img = await draw_number(path, index)
+            media.attach_photo(InputFile(img))
+        await call.message.answer_media_group(media)
+        media = MediaGroup()
+    media.clean()
+
+    await call.message.answer(text="<b>❗ Press the content image number.</b>",
+                              reply_markup=content_choice_kb)
+
+
+@dp.callback_query_handler(Text(startswith='content_'), state=States.waiting_for_user_content)
+async def waiting_for_selection_content(call: CallbackQuery, state: FSMContext):
+    with suppress(*suppress_exceptions):
+        await bot.edit_message_reply_markup(call.from_user.id, call.message.message_id)
+
+    user_content_choice = CONTENTS_PATHS[int(call.data[8:]) - 1]
+
+    with Image.open(user_content_choice) as img:
+        content_io = BytesIO()
+        img.save(content_io, format='JPEG')
+        content_io.seek(0)
+        await state.update_data(user_content=content_io)
+
+    await call.message.answer(text="<b>❗ Ok, I got it. Now send me a style image "
+                                   "or press for selection from the presets.</b>",
+                              reply_markup=style_type_choice_kb)
+
+    await States.waiting_for_user_style.set()
+
+
+# @dp.message_handler(state=States.waiting_for_user_content, content_types=['document'])
 # async def waiting_for_user_content(msg: Message):
 #     await msg.answer("<b>I can't handle uncompressed images or a document...</b>")
 #     await stylization_entry_point_handler(msg.from_user.id)
@@ -111,68 +166,62 @@ async def waiting_for_content(msg: Message, state: FSMContext):
 #     await stylization_entry_point_handler(msg.from_user.id)
 
 
-@dp.callback_query_handler(Text(equals='user_style'), state=States.waiting_for_content)
-async def waiting_for_selection_style(call: CallbackQuery):
-    with suppress(*suppress_exceptions):
-        await bot.delete_message(call.from_user.id, call.message.message_id)
-    await call.message.answer("<b>Ok, send me your style image.</b>", reply_markup=cancel_kb)
-    await States.waiting_for_user_style.set()
-
-
 @dp.message_handler(state=States.waiting_for_user_style, content_types=['photo'])
-async def waiting_for_content(msg: Message, state: FSMContext):
-    user_id = msg.from_user.id
-
+async def waiting_for_style(msg: Message, state: FSMContext):
     with suppress(*suppress_exceptions):
-        await bot.delete_message(user_id, msg.message_id - 1)
+        await bot.delete_message(msg.from_user.id, msg.message_id - 1)
 
     content_io = (await state.get_data()).get('user_content')
     await state.reset_data()
     style_io = BytesIO()
     await msg.photo[-1].download(style_io)
-    await msg.answer('I got it. Now wait...')
+    await msg.answer("<b>❗ I got it. Now wait...</b>")
 
     stylized_img_obj = await eval_func(content_io, style_io)
     stylized_img_obj.seek(0)
 
-    await msg.answer("<b>Your result:</b>")
+    await msg.answer("<b>❗ Your result:</b>")
     await msg.answer_photo(stylized_img_obj)
 
     await state.finish()
 
 
-@dp.callback_query_handler(Text(equals='prep_style'), state=States.waiting_for_content)
+@dp.callback_query_handler(Text(equals='style_presets'), state=States.waiting_for_user_style)
 async def waiting_for_selection_style(call: CallbackQuery):
     with suppress(*suppress_exceptions):
         await bot.delete_message(call.from_user.id, call.message.message_id)
 
+    await call.message.answer("<b>❗ STYLE PRESETS:</b>")
     media = MediaGroup()
-    for i in range(1, 21):
-        media.attach_photo(InputFile(f'images/numbered_style/numbered_style_{i}.jpg'))
-        if i % 10 == 0:
-            await call.message.answer_media_group(media)
-            media = MediaGroup()
+    index = 0
+    for chunk in chunks(STYLES_PATHS, 10):
+        for path in chunk:
+            index += 1
+            img = await draw_number(path, index)
+            media.attach_photo(InputFile(img))
+        await call.message.answer_media_group(media)
+        media = MediaGroup()
     media.clean()
 
-    await call.message.answer("Send me the style image number or press random button!", reply_markup=style_choice_kb)
-    await States.waiting_for_selection_style.set()
+    await call.message.answer(text="<b>❗ Press the style image number.</b>",
+                              reply_markup=style_choice_kb)
 
 
-@dp.callback_query_handler(Text(startswith='style_'), state=States.waiting_for_selection_style)
+@dp.callback_query_handler(Text(startswith='style_'), state=States.waiting_for_user_style)
 async def waiting_for_selection_style(call: CallbackQuery, state: FSMContext):
     with suppress(*suppress_exceptions):
         await bot.edit_message_reply_markup(call.from_user.id, call.message.message_id)
 
     user_choice = call.data[6:]
 
-    style_number = random.choice(range(1, 21)) if user_choice == 'random' else user_choice
+    user_style_number = random.choice(range(1, len(STYLES_PATHS)+1)) if user_choice == 'random' else int(user_choice)
 
-    await call.message.answer("<b>I got it. Now wait...</b>")
+    await call.message.answer("<b>❗ I got it. Now wait...</b>")
 
     content_io = (await state.get_data()).get('user_content')
     await state.reset_data()
 
-    style_url = f'images/default_style/default_style_{style_number}.jpg'
+    style_url = STYLES_PATHS[user_style_number-1]
 
     stylized_io = await eval_func(content_io, style_url)
     stylized_io.seek(0)
@@ -188,7 +237,7 @@ async def waiting_for_selection_style(call: CallbackQuery, state: FSMContext):
     await stylization_entry_point_handler(call.from_user.id)
 
 
-@dp.callback_query_handler(Text(equals='all'), state=States.waiting_for_selection_style)
+@dp.callback_query_handler(Text(equals='all'), state=States.waiting_for_user_style)
 async def waiting_for_selection_style(call: CallbackQuery, state: FSMContext):
     with suppress(*suppress_exceptions):
         await bot.edit_message_reply_markup(call.from_user.id, call.message.message_id)
@@ -196,30 +245,32 @@ async def waiting_for_selection_style(call: CallbackQuery, state: FSMContext):
     content_io = (await state.get_data()).get('user_content')
     await state.reset_data()
 
-    for style_number in range(1, 21):
-        style_url = f'images/default_style/default_style_{style_number}.jpg'
-
+    index = 1
+    amount = len(STYLES_PATHS)
+    for style_url in STYLES_PATHS:
         stylized_io = await eval_func(content_io, style_url)
         stylized_io.seek(0)
-
+        style_title = ' '.join(style_url.split('/')[-1].split('.')[:-1])
+        await call.message.answer(text=f"<b>❗ + {style_title} ({index}/{amount})</b>")
         media = MediaGroup()
-
-        media.attach_photo(InputFile(f'images/default_style/default_style_{style_number}.jpg'))
+        media.attach_photo(InputFile(style_url))
         media.attach_photo(InputFile(stylized_io))
         await call.message.answer_media_group(media)
         media.clean()
+        index += 1
 
     await state.finish()
 
 
+# WEB HANDLERS
 @aiohttp_jinja2.template('main.html')
 async def get_handler(request: Request):
     return {}
 
 
 async def get_images_handler(request: Request):
-    images_urls = {'contents_urls': [x.as_posix() for x in CONTENTS_DIR.glob('*.jpg')],
-                   'styles_urls': [x.as_posix() for x in STYLES_DIR.glob('*.jpg')]}
+    images_urls = {'contents_urls': CONTENTS_PATHS,
+                   'styles_urls': STYLES_PATHS}
     return web.json_response(images_urls)
 
 
@@ -232,14 +283,14 @@ async def post_handler(request):
     stylized_img_obj = await eval_func(content_img_obj, style_img_obj)
 
     try:
+        await asyncio.sleep(0.5)
         return web.Response(body=stylized_img_obj.getvalue(), content_type='image/jpeg')
     finally:
-        print('FINISH')
         stylized_img_obj.close()
 
 
 async def main():
-    app = web.Application()
+    app = web.Application(client_max_size=1024 ** 2 * 30)
     aiohttp_jinja2.setup(
         app=app,
         loader=jinja2.FileSystemLoader('templates')
@@ -248,7 +299,7 @@ async def main():
     app.add_routes([web.get(path='/', handler=get_handler),
                     web.get(path='/getimages', handler=get_images_handler),
                     web.post(path='/', handler=post_handler),
-                    web.static(prefix='/images', path='images', show_index=True)])
+                    web.static(prefix='/static', path='static', show_index=True)])
 
     runner = web.AppRunner(app)
     await runner.setup()

@@ -6,17 +6,19 @@
     <meta name="viewport"
           content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Главная</title>
+    <title>SANet</title>
 
-    <link rel="icon" type="image/png" href="/images/brain.png"/>
-    <link rel="stylesheet" href="/images/style.css"/>
+    <link rel="icon" type="image/png" href="/static/images/brain.png"/>
+    <link rel="stylesheet" href="/static/style.css"/>
 
 </head>
 
 <body>
 
     <header>
-        <h1>SANET</h1><div id="brain"></div>
+        <h1>STYLE</h1>
+        <div id="brain"></div>
+        <h1>TRANSFER</h1>
     </header>
 
     <div id="main">
@@ -24,51 +26,49 @@
         <div class="sel-img-section">
             <h3>SELECT CONTENT</h3>
             <div class="card">
-                <div class="card drop-zone" id="content-drop-zone">
-                    <span class="drop-zone__prompt">Drop image file here or click to upload</span>
+                <div id="content-drop-zone" class="card drop-zone">
+                    <span class="drop-zone__prompt">Drop image file(s) here or click to upload</span>
                     <input type="file" class="drop-zone__input" multiple>
                 </div>
-                <div id="contents-box">
-                    <div class="drop-zone content-img-elem">
-                        <h1 class="drop-zone__prompt">+</h1>
+                <div id="contents-container">
+                    <div class="drop-zone content-thumb">
+                        <h2 class="drop-zone__prompt">+</h2>
                         <input type="file" class="drop-zone__input" multiple>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="sign">
-            <h1>+</h1>
-        </div>
+        <h1>+</h1>
 
         <div class="sel-img-section">
             <h3>SELECT STYLE</h3>
             <div class="card">
-                <div class="card" id="style-select-box">
+                <div id="styles-container" class="card">
                     <div class="drop-zone style-drop-zone">
-                        <h1 class="drop-zone__prompt">+</h1>
+                        <h2 class="drop-zone__prompt">+</h2>
                         <input type="file" class="drop-zone__input" multiple>
                     </div>
                 </div>
-                <button id="select-all-styles-btn" type="button" onclick="selectAllStyles()">SELECT ALL</button>
-                <button id="cancel-all-styles-btn" type="button" onclick="cancelSelectedStyles()">CANCEL SELECTED</button>
+                <div id="style-buttons">
+                    <button class="button" type="button" onclick="selectAllStyles()">SELECT ALL</button>
+                    <button class="button" type="button" onclick="cancelSelectedStyles()">CANCEL SELECTED</button>
+                </div>
             </div>
         </div>
 
-        <div class="sign">
-            <h1>=</h1>
-        </div>
+        <h1>=</h1>
 
         <div id="result-section">
             <h3>RESULT</h3>
-            <button id="stylize-btn" type="submit" onclick="sendRequest()">STYLIZE</button>
-            <div class="card">
-                <div id="stylized-output-zone" class="card"></div>
-                <div id="results-box"></div>
+            <div class="card result-card">
+                <button id="stylize-btn" class="button" type="submit" onclick="sendRequest()">STYLIZE</button>
+                <div id="stylized-result-box" class="card"></div>
+                <div id="result-styles-container"></div>
             </div>
         </div>
     </div>
 
-    <script src="/images/script.js"></script>
+    <script src="/static/script.js"></script>
 </body>
 </html>
