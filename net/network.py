@@ -221,11 +221,12 @@ class Net(nn.Module):
         l_identity1 = self.calc_content_loss(Icc, content) + self.calc_content_loss(Iss, style)
         Fcc = self.encode_with_intermediate(Icc)
         Fss = self.encode_with_intermediate(Iss)
-        l_identity2 = self.calc_content_loss(Fcc[0], content_feats[0]) + self.calc_content_loss(Fss[0], style_feats[0])
+        l_identity2 = self.calc_content_loss(Fcc[0], content_feats[0]) + \
+                      self.calc_content_loss(Fss[0], style_feats[0])
 
         for i in range(1, 5):
-            l_identity2 += self.calc_content_loss(Fcc[i], content_feats[i]) + self.calc_content_loss(Fss[i],
-                                                                                                     style_feats[i])
+            l_identity2 += self.calc_content_loss(Fcc[i], content_feats[i]) + \
+                           self.calc_content_loss(Fss[i], style_feats[i])
         return loss_c, loss_s, l_identity1, l_identity2
 
 

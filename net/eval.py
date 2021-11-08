@@ -9,12 +9,12 @@ from .loader import *
 from .utils import resize_image
 
 
-def calc(number):
+def calc(number: int):
     """Makes the number a multiple of 80"""
     return (number // 80 + 1) * 80 if number % 80 > 40 else number // 80 * 80
 
 
-def transform_to_tensor(size):
+def transform_to_tensor(size: tuple):
     return transforms.Compose([transforms.Resize((calc(size[1]), calc(size[0]))),
                                transforms.ToTensor()])
 
