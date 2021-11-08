@@ -1,4 +1,4 @@
-aiogram==2.15
+aiogram==2.16
 aiohttp==3.8.0
 aiohttp-jinja2==1.5
 aiosignal==1.2.0

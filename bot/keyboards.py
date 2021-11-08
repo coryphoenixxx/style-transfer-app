@@ -9,11 +9,11 @@ async def make_content_choice_kb():
     return content_choice_kb
 
 
-async def make_content_type_choice_kb():
-    content_type_choice_kb = InlineKeyboardMarkup(row_width=2)
-    content_type_choice_kb.add(InlineKeyboardButton(text='Show Content Presets', callback_data='content_presets'))
-    content_type_choice_kb.add(InlineKeyboardButton(text='Cancel', callback_data='cancel'))
-    return content_type_choice_kb
+async def make_content_presets_kb():
+    content_presets_kb = InlineKeyboardMarkup(row_width=2)
+    content_presets_kb.add(InlineKeyboardButton(text='Show Content Presets', callback_data='content_presets'))
+    content_presets_kb.add(InlineKeyboardButton(text='Cancel', callback_data='cancel'))
+    return content_presets_kb
 
 
 async def make_style_choice_kb():
@@ -25,8 +25,8 @@ async def make_style_choice_kb():
     return style_choice_kb
 
 
-async def make_style_type_choice_kb():
-    style_type_choice_kb = InlineKeyboardMarkup(row_width=2)
-    style_type_choice_kb.add(InlineKeyboardButton(text='Show Style Presets', callback_data='style_presets'))
-    style_type_choice_kb.add(InlineKeyboardButton(text='Cancel', callback_data='cancel'))
-    return style_type_choice_kb
+async def make_style_presets_kb():
+    style_presets_kb = InlineKeyboardMarkup(row_width=2)
+    style_presets_kb.add(InlineKeyboardButton(text='Show Style Presets', callback_data='style_presets'))
+    style_presets_kb.add(InlineKeyboardButton(text='Cancel', callback_data='cancel'))
+    return style_presets_kb

@@ -1,22 +1,19 @@
 import asyncio
 from io import BytesIO
 
-
 import aiohttp_jinja2
 import jinja2
 from aiohttp import web
 from aiohttp.web_request import Request
 
+from bot.handlers import dp, bot
+from config import ADMIN_ID, STYLES_PATHS, CONTENTS_PATHS
 from net.eval import eval_func
 
-from config import API_TOKEN, ADMIN_ID, IMAGES_DIR, STYLES_PATHS, CONTENTS_PATHS
-from config import bot
-from bot.handlers import dp
 
 routes = web.RouteTableDef()
 
 
-# WEB HANDLERS
 @aiohttp_jinja2.template('main.html')
 async def get_handler(request: Request):
     return {}
@@ -28,7 +25,7 @@ async def get_images_handler(request: Request):
     return web.json_response(images_urls)
 
 
-async def post_handler(request):
+async def post_handler(request: Request):
     data = await request.post()
 
     content_img_obj = BytesIO(data['content'].file.read())
@@ -36,16 +33,12 @@ async def post_handler(request):
 
     stylized_img_obj = await eval_func(content_img_obj, style_img_obj)
 
-    try:
-        await asyncio.sleep(0.5)
-        return web.Response(body=stylized_img_obj.getvalue(), content_type='image/jpeg')
-    finally:
-        stylized_img_obj.close()
+    return web.Response(body=stylized_img_obj.getvalue(), content_type='image/jpeg')
 
 
 async def main():
-
     app = web.Application(client_max_size=1024 ** 2 * 30)
+
     aiohttp_jinja2.setup(
         app=app,
         loader=jinja2.FileSystemLoader('templates')
@@ -58,13 +51,16 @@ async def main():
 
     runner = web.AppRunner(app)
     await runner.setup()
-    site = web.TCPSite(runner, "192.168.1.2")
-    await bot.send_message(ADMIN_ID, 'Bot started. /start')
+
+    site = web.TCPSite(runner, 'localhost')
+
+    await bot.send_message(ADMIN_ID, "<b>❗ Bot started. /start</b>")
 
     tasks = [
         site.start(),
         dp.start_polling()
     ]
+
     print('App started.')
     await asyncio.gather(*tasks)
 

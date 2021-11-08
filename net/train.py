@@ -4,7 +4,7 @@ from net.network import create_network
 import torch.backends.cudnn as cudnn
 from PIL import Image, ImageFile
 from tqdm import tqdm
-
+from config import START_ITER, MAX_ITER
 
 cudnn.benchmark = True
 Image.MAX_IMAGE_PIXELS = None  # Disable DecompressionBombError
@@ -18,31 +18,15 @@ def adjust_learning_rate(optimizer, iteration_count):
 
 
 if __name__ == '__main__':
-
-    start_iter = 820000
     avg_loss = 0
 
     device = torch.device('cuda:0')
-    print(torch.cuda.is_available())
+    print(f"CUDA: {torch.cuda.is_available()}")
 
     content_iter, style_iter = init_loaders()
-    network, decoder, vgg = create_network()
+    network, decoder, vgg, optimizer = create_network()
 
-    decoder.load_state_dict(torch.load(f'./state_dicts/decoder_iter_{start_iter}.pth'))
-    network.transform.load_state_dict(torch.load(f'./state_dicts/transformer_iter_{start_iter}.pth'))
-
-    network.cuda()
-
-    optimizer = torch.optim.Adam([
-        {'params': network.decoder.parameters()},
-        {'params': network.transform.parameters()}], lr=1e-4)
-    optimizer.load_state_dict(torch.load(f'./state_dicts/optimizer_iter_{start_iter}.pth'))
-
-    network.train()
-
-    print(device)
-
-    for i in tqdm(range(start_iter, 1000001)):
+    for i in tqdm(range(START_ITER, MAX_ITER)):
         adjust_learning_rate(optimizer, iteration_count=i)
 
         content_images = next(content_iter).to(device)

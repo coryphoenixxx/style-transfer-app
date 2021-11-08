@@ -29,7 +29,6 @@ class FlatFolderDataset(Dataset):
 
 
 def InfiniteSampler(n):
-    # i = 0
     i = n - 1
     order = np.random.permutation(n)
     while True:
@@ -53,19 +52,23 @@ class InfiniteSamplerWrapper(data.sampler.Sampler):
 
 
 def init_loaders():
-    content_folder = Path(r'C:\Users\coryphoenixxx\Downloads\content')
-    style_folder = Path(r'C:\Users\coryphoenixxx\Downloads\style')
+    content_folder = Path('train_images/content')
+    style_folder = Path('train_images/style')
 
     content_dataset = FlatFolderDataset(content_folder)
     style_dataset = FlatFolderDataset(style_folder)
 
     batch_size = 18
     num_workers = 2
-    content_iter = iter(DataLoader(dataset=content_dataset, batch_size=batch_size,
-                                   num_workers=num_workers, pin_memory=True,
+    content_iter = iter(DataLoader(dataset=content_dataset,
+                                   batch_size=batch_size,
+                                   num_workers=num_workers,
+                                   pin_memory=True,
                                    sampler=InfiniteSamplerWrapper(content_dataset)))
-    style_iter = iter(DataLoader(dataset=style_dataset, batch_size=batch_size,
-                                 num_workers=num_workers, pin_memory=True,
+    style_iter = iter(DataLoader(dataset=style_dataset,
+                                 batch_size=batch_size,
+                                 num_workers=num_workers,
+                                 pin_memory=True,
                                  sampler=InfiniteSamplerWrapper(style_dataset)))
 
     return content_iter, style_iter

@@ -1,7 +1,7 @@
 from .network import decoder, vgg, Transform
 import torch
 import torch.nn as nn
-
+from config import EVAL_ITER
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -11,9 +11,9 @@ decoder.eval()
 transform.eval()
 vgg.eval()
 
-decoder.load_state_dict(torch.load('net/state_dicts/decoder_iter_500000.pth'))
-transform.load_state_dict(torch.load('net/state_dicts/transformer_iter_500000.pth'))
-vgg.load_state_dict(torch.load('net/state_dicts/vgg_normalised.pth'))
+decoder.load_state_dict(torch.load(f'net/state_dicts/decoder_iter_{EVAL_ITER}.pth'))
+transform.load_state_dict(torch.load(f'net/state_dicts/transformer_iter_{EVAL_ITER}.pth'))
+vgg.load_state_dict(torch.load(f'net/state_dicts/vgg_normalised.pth'))
 
 norm = nn.Sequential(*list(vgg.children())[:1])
 enc_1 = nn.Sequential(*list(vgg.children())[:4])  # input -> relu1_1

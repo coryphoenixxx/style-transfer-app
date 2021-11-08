@@ -12,13 +12,17 @@ from aiogram.dispatcher.filters.state import StatesGroup, State
 from aiogram.types import MediaGroup, InputFile, Message, CallbackQuery
 from aiogram.utils.exceptions import MessageNotModified, MessageToEditNotFound, MessageCantBeEdited
 
-from bot.keyboards import make_style_choice_kb, make_content_choice_kb, make_style_type_choice_kb, \
-    make_content_type_choice_kb
-from config import IMAGES_DIR, STYLES_PATHS, CONTENTS_PATHS
-from config import bot
+from bot.keyboards import make_style_choice_kb, make_content_choice_kb, make_style_presets_kb, \
+    make_content_presets_kb
+from config import IMAGES_DIR, STYLES_PATHS, CONTENTS_PATHS, API_TOKEN
 from net.eval import eval_func
-from net.utils import chunks, draw_number
+from net.utils import cut_into_chunks, draw_number
 
+from aiogram import Bot
+from aiogram.types import ParseMode
+
+
+bot = Bot(token=API_TOKEN, parse_mode=ParseMode.HTML)
 storage = MemoryStorage()
 dp = Dispatcher(bot, storage=storage)
 
@@ -29,30 +33,34 @@ suppress_exceptions = (AttributeError, MessageNotModified, MessageToEditNotFound
 class States(StatesGroup):
     waiting_for_user_content = State()
     waiting_for_user_style = State()
+    calculation = State()
 
 
 async def entry_point_handler(user_id):
     await States.waiting_for_user_content.set()
     await bot.send_message(user_id,
-                           text='<b>❗ Send me an image for stylization or press for selection from the presets.</b>',
-                           reply_markup=await make_content_type_choice_kb())
+                           text="<b>❗ Send me an image for stylization or press for selection from the presets.</b>",
+                           reply_markup=await make_content_presets_kb())
 
 
 async def form_and_send_media(call, paths):
+    """Send numbered images to the user in chunks of 10"""
     media = MediaGroup()
     index = 0
-    for chunk in chunks(paths, 10):
+    for chunk in cut_into_chunks(paths, 10):
         for path in chunk:
             index += 1
             img = await draw_number(path, index)
             media.attach_photo(InputFile(img))
         await call.message.answer_media_group(media)
-        await asyncio.sleep(3)  # Prevent flood exception
         media = MediaGroup()
+
+        if len(paths) > 20:
+            await asyncio.sleep(3)  # Prevent flood exception
+
     media.clean()
 
 
-# BOT HANDLERS
 @dp.message_handler(commands=["start"])
 async def cmd_start(msg: Message):
     await msg.answer("<b>❗ Hi!"
@@ -67,11 +75,9 @@ async def cmd_stylize(msg: Message):
     await entry_point_handler(msg.from_user.id)
 
 
-@dp.callback_query_handler(Text(equals='cancel'), state=States.waiting_for_user_content)
+@dp.callback_query_handler(Text(equals='cancel'), state=[States.waiting_for_user_content,
+                                                         States.waiting_for_user_style])
 async def cmd_cancel(call: CallbackQuery, state: FSMContext):
-    if await state.get_state() is None:
-        return
-
     await call.answer(text="❗ Canceled.")
     with suppress(*suppress_exceptions):
         await bot.delete_message(call.from_user.id, call.message.message_id)
@@ -80,7 +86,7 @@ async def cmd_cancel(call: CallbackQuery, state: FSMContext):
 
 
 @dp.message_handler(state=States.waiting_for_user_content, content_types=['photo'])
-async def waiting_for_content(msg: Message, state: FSMContext):
+async def get_user_content(msg: Message, state: FSMContext):
     with suppress(*suppress_exceptions):
         await bot.delete_message(msg.from_user.id, msg.message_id - 1)
 
@@ -89,7 +95,7 @@ async def waiting_for_content(msg: Message, state: FSMContext):
     await state.update_data(user_content=content_io)
 
     await msg.answer(text="<b>❗ Ok, I got it. Now send me a style image or press for selection from the presets.</b>",
-                     reply_markup=await make_style_type_choice_kb())
+                     reply_markup=await make_style_presets_kb())
     await States.waiting_for_user_style.set()
 
 
@@ -105,7 +111,7 @@ async def send_content_presets(call: CallbackQuery):
 
 
 @dp.callback_query_handler(Text(startswith='content_'), state=States.waiting_for_user_content)
-async def waiting_for_selection_content(call: CallbackQuery, state: FSMContext):
+async def get_selected_user_content(call: CallbackQuery, state: FSMContext):
     with suppress(*suppress_exceptions):
         await bot.delete_message(call.from_user.id, call.message.message_id)
 
@@ -117,21 +123,33 @@ async def waiting_for_selection_content(call: CallbackQuery, state: FSMContext):
         content_io.seek(0)
         await state.update_data(user_content=content_io)
 
-    await call.message.answer(text="<b>❗ Ok, I got it. Now send me a style image "
+    await call.message.answer(text="<b>❗ Ok, I got it. Now send me a style image"
                                    "or press for selection from the presets.</b>",
-                              reply_markup=await make_style_type_choice_kb())
+                              reply_markup=await make_style_presets_kb())
 
     await States.waiting_for_user_style.set()
 
 
 @dp.message_handler(state=States.waiting_for_user_content, content_types=['document'])
-async def waiting_for_user_content(msg: Message):
+async def get_content_document(msg: Message):
+    with suppress(*suppress_exceptions):
+        await bot.delete_message(msg.from_user.id, msg.message_id-1)
+
     await msg.answer("<b>❗ I can't handle uncompressed images or a document...</b>")
+    await asyncio.sleep(1)
+    await msg.answer(text="<b>❗ Send me an image for stylization or press for selection from the presets.</b>",
+                     reply_markup=await make_content_presets_kb())
 
 
 @dp.message_handler(state=States.waiting_for_user_style, content_types=['document'])
-async def waiting_for_user_style(msg: Message):
+async def get_style_document(msg: Message):
+    with suppress(*suppress_exceptions):
+        await bot.delete_message(msg.from_user.id, msg.message_id-1)
+
     await msg.answer("<b>❗ I can't handle uncompressed images or a document...</b>")
+    await asyncio.sleep(1)
+    await msg.answer(text="<b>❗ Send me a style image or press for selection from the presets.</b>",
+                     reply_markup=await make_style_presets_kb())
 
 
 @dp.message_handler(state=States.waiting_for_user_style, content_types=['photo'])
@@ -145,6 +163,8 @@ async def waiting_for_style(msg: Message, state: FSMContext):
     await msg.photo[-1].download(destination_file=style_io)
     await msg.answer("<b>❗ I got it. Now wait...</b>")
 
+    await States.calculation.set()
+
     stylized_img_obj = await eval_func(content_io, style_io)
 
     await msg.answer("<b>❗ Your result:</b>")
@@ -152,6 +172,8 @@ async def waiting_for_style(msg: Message, state: FSMContext):
     await msg.answer_photo(stylized_img_obj)
 
     await state.finish()
+    await asyncio.sleep(1)
+    await msg.answer("<b>❗ If you want to try again press /stylize.</b>")
 
 
 @dp.callback_query_handler(Text(equals='style_presets'), state=States.waiting_for_user_style)
@@ -161,7 +183,6 @@ async def waiting_for_selection_style(call: CallbackQuery):
 
     await call.message.answer("<b>❗ STYLE PRESETS:</b>")
     await form_and_send_media(call, STYLES_PATHS)
-
     await call.message.answer(text="<b>❗ Press the style image number.</b>",
                               reply_markup=await make_style_choice_kb())
 
@@ -170,6 +191,8 @@ async def waiting_for_selection_style(call: CallbackQuery):
 async def waiting_for_selection_style(call: CallbackQuery, state: FSMContext):
     with suppress(*suppress_exceptions):
         await bot.delete_message(call.from_user.id, call.message.message_id)
+
+    await States.calculation.set()
 
     user_choice = call.data[6:]
 
@@ -194,12 +217,16 @@ async def waiting_for_selection_style(call: CallbackQuery, state: FSMContext):
     media.clean()
 
     await state.finish()
+    await asyncio.sleep(1)
+    await call.message.answer("<b>❗ If you want to try again press /stylize.</b>")
 
 
 @dp.callback_query_handler(Text(equals='all'), state=States.waiting_for_user_style)
 async def waiting_for_selection_style(call: CallbackQuery, state: FSMContext):
     with suppress(*suppress_exceptions):
         await bot.edit_message_reply_markup(call.from_user.id, call.message.message_id)
+
+    await States.calculation.set()
 
     content_io = (await state.get_data()).get('user_content')
     await state.reset_data()
@@ -220,3 +247,5 @@ async def waiting_for_selection_style(call: CallbackQuery, state: FSMContext):
         index += 1
 
     await state.finish()
+    await asyncio.sleep(1)
+    await call.message.answer("<b>❗ If you want to try again press /stylize.</b>")
