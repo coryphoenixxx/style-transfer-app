@@ -13,7 +13,7 @@ vgg.eval()
 
 decoder.load_state_dict(torch.load(f'net/state_dicts/decoder_iter_{EVAL_ITER}.pth'))
 transform.load_state_dict(torch.load(f'net/state_dicts/transformer_iter_{EVAL_ITER}.pth'))
-vgg.load_state_dict(torch.load(f'net/state_dicts/vgg_normalised.pth'))
+vgg.load_state_dict(torch.load('net/state_dicts/vgg_normalised.pth'))
 
 norm = nn.Sequential(*list(vgg.children())[:1])
 enc_1 = nn.Sequential(*list(vgg.children())[:4])  # input -> relu1_1

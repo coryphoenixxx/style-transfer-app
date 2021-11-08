@@ -8,13 +8,13 @@ from aiohttp.web_request import Request
 
 from bot.handlers import dp, bot
 from config import ADMIN_ID, STYLES_PATHS, CONTENTS_PATHS
-from net.eval import eval_func
+from net.eval import eval
 
 
 routes = web.RouteTableDef()
 
 
-@aiohttp_jinja2.template('main.html')
+@aiohttp_jinja2.template('index.html')
 async def get_handler(request: Request):
     return {}
 
@@ -31,7 +31,7 @@ async def post_handler(request: Request):
     content_img_obj = BytesIO(data['content'].file.read())
     style_img_obj = BytesIO(data['style'].file.read())
 
-    stylized_img_obj = await eval_func(content_img_obj, style_img_obj)
+    stylized_img_obj = await eval(content_img_obj, style_img_obj)
 
     return web.Response(body=stylized_img_obj.getvalue(), content_type='image/jpeg')
 
@@ -61,7 +61,7 @@ async def main():
         dp.start_polling()
     ]
 
-    print('App started.')
+    print("App started.")
     await asyncio.gather(*tasks)
 
 

@@ -1,18 +1,17 @@
 from PIL import Image, ImageDraw, ImageFont
 from io import BytesIO
-from config import MAX_IMAGE_SIZE
 
 
-async def resize_image(img: Image):
+async def resize_image(img: Image, max_size: int):
     width, height = img.width, img.height
 
-    if width > MAX_IMAGE_SIZE or height > MAX_IMAGE_SIZE:
+    if width > max_size or height > max_size:
         if width > height:
-            new_width = MAX_IMAGE_SIZE
-            new_height = MAX_IMAGE_SIZE * height // width
+            new_width = max_size
+            new_height = max_size * height // width
         else:
-            new_width = MAX_IMAGE_SIZE * width // height
-            new_height = MAX_IMAGE_SIZE
+            new_width = max_size * width // height
+            new_height = max_size
 
         img = img.resize((new_width, new_height))
         return img
@@ -27,7 +26,8 @@ def cut_into_chunks(lst, n):
 
 async def draw_number(image_path, index):
     with Image.open(image_path) as img:
-        img = await resize_image(img)
+        # Telegram resize images to 1280px on one side, used for correct drawing of number
+        img = await resize_image(img, 1280)
         w, h = img.size[0], img.size[1]
         numbered_img_io = BytesIO()
         draw = ImageDraw.Draw(img)

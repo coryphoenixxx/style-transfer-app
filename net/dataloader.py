@@ -1,10 +1,13 @@
+import numpy as np
+import os
+
 from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms
 from PIL import Image
 from pathlib import Path
 from torch.utils import data
-import numpy as np
-import os
+
+from config import BATCH_SIZE, NUM_WORKERS
 
 
 class FlatFolderDataset(Dataset):
@@ -28,7 +31,7 @@ class FlatFolderDataset(Dataset):
         return img
 
 
-def InfiniteSampler(n):
+def inf_sampler(n):
     i = n - 1
     order = np.random.permutation(n)
     while True:
@@ -45,7 +48,7 @@ class InfiniteSamplerWrapper(data.sampler.Sampler):
         self.num_samples = len(data_source)
 
     def __iter__(self):
-        return iter(InfiniteSampler(self.num_samples))
+        return iter(inf_sampler(self.num_samples))
 
     def __len__(self):
         return 2 ** 31
@@ -58,16 +61,14 @@ def init_loaders():
     content_dataset = FlatFolderDataset(content_folder)
     style_dataset = FlatFolderDataset(style_folder)
 
-    batch_size = 18
-    num_workers = 2
     content_iter = iter(DataLoader(dataset=content_dataset,
-                                   batch_size=batch_size,
-                                   num_workers=num_workers,
+                                   batch_size=BATCH_SIZE,
+                                   num_workers=NUM_WORKERS,
                                    pin_memory=True,
                                    sampler=InfiniteSamplerWrapper(content_dataset)))
     style_iter = iter(DataLoader(dataset=style_dataset,
-                                 batch_size=batch_size,
-                                 num_workers=num_workers,
+                                 batch_size=BATCH_SIZE,
+                                 num_workers=NUM_WORKERS,
                                  pin_memory=True,
                                  sampler=InfiniteSamplerWrapper(style_dataset)))
 

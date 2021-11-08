@@ -15,8 +15,8 @@ from aiogram.utils.exceptions import MessageNotModified, MessageToEditNotFound, 
 from bot.keyboards import make_style_choice_kb, make_content_choice_kb, make_style_presets_kb, \
     make_content_presets_kb
 from config import IMAGES_DIR, STYLES_PATHS, CONTENTS_PATHS, API_TOKEN
-from net.eval import eval_func
-from net.utils import cut_into_chunks, draw_number
+from net.eval import eval
+from utils import cut_into_chunks, draw_number
 
 from aiogram import Bot
 from aiogram.types import ParseMode
@@ -36,14 +36,14 @@ class States(StatesGroup):
     calculation = State()
 
 
-async def entry_point_handler(user_id):
+async def entry_point_handler(user_id: int):
     await States.waiting_for_user_content.set()
     await bot.send_message(user_id,
                            text="<b>❗ Send me an image for stylization or press for selection from the presets.</b>",
                            reply_markup=await make_content_presets_kb())
 
 
-async def form_and_send_media(call, paths):
+async def form_and_send_media(call: CallbackQuery, paths: list):
     """Send numbered images to the user in chunks of 10"""
     media = MediaGroup()
     index = 0
@@ -153,7 +153,7 @@ async def get_style_document(msg: Message):
 
 
 @dp.message_handler(state=States.waiting_for_user_style, content_types=['photo'])
-async def waiting_for_style(msg: Message, state: FSMContext):
+async def get_user_style(msg: Message, state: FSMContext):
     with suppress(*suppress_exceptions):
         await bot.delete_message(msg.from_user.id, msg.message_id - 1)
 
@@ -165,11 +165,11 @@ async def waiting_for_style(msg: Message, state: FSMContext):
 
     await States.calculation.set()
 
-    stylized_img_obj = await eval_func(content_io, style_io)
+    stylized_io = await eval(content_io, style_io)
 
     await msg.answer("<b>❗ Your result:</b>")
-    stylized_img_obj.seek(0)
-    await msg.answer_photo(stylized_img_obj)
+    stylized_io.seek(0)
+    await msg.answer_photo(stylized_io)
 
     await state.finish()
     await asyncio.sleep(1)
@@ -177,7 +177,7 @@ async def waiting_for_style(msg: Message, state: FSMContext):
 
 
 @dp.callback_query_handler(Text(equals='style_presets'), state=States.waiting_for_user_style)
-async def waiting_for_selection_style(call: CallbackQuery):
+async def send_style_presets(call: CallbackQuery):
     with suppress(*suppress_exceptions):
         await bot.delete_message(call.from_user.id, call.message.message_id)
 
@@ -188,7 +188,7 @@ async def waiting_for_selection_style(call: CallbackQuery):
 
 
 @dp.callback_query_handler(Text(startswith='style_'), state=States.waiting_for_user_style)
-async def waiting_for_selection_style(call: CallbackQuery, state: FSMContext):
+async def stylize_by_style_number(call: CallbackQuery, state: FSMContext):
     with suppress(*suppress_exceptions):
         await bot.delete_message(call.from_user.id, call.message.message_id)
 
@@ -207,7 +207,7 @@ async def waiting_for_selection_style(call: CallbackQuery, state: FSMContext):
     style_title = ' '.join(style_url.split('/')[-1].split('.')[:-1])
     await call.message.answer(text=f"<b>❗ + {style_title}</b>")
 
-    stylized_io = await eval_func(content_io, style_url)
+    stylized_io = await eval(content_io, style_url)
     stylized_io.seek(0)
 
     media = MediaGroup()
@@ -222,7 +222,7 @@ async def waiting_for_selection_style(call: CallbackQuery, state: FSMContext):
 
 
 @dp.callback_query_handler(Text(equals='all'), state=States.waiting_for_user_style)
-async def waiting_for_selection_style(call: CallbackQuery, state: FSMContext):
+async def stylize_and_send_for_all_styles(call: CallbackQuery, state: FSMContext):
     with suppress(*suppress_exceptions):
         await bot.edit_message_reply_markup(call.from_user.id, call.message.message_id)
 
@@ -234,7 +234,7 @@ async def waiting_for_selection_style(call: CallbackQuery, state: FSMContext):
     index = 1
     amount = len(STYLES_PATHS)
     for style_url in STYLES_PATHS:
-        stylized_io = await eval_func(content_io, style_url)
+        stylized_io = await eval(content_io, style_url)
         stylized_io.seek(0)
         style_title = ' '.join(style_url.split('/')[-1].split('.')[:-1])
         media = MediaGroup()

@@ -119,12 +119,10 @@ function getBackgroundImageUrl(element) {
 }
 
 
-function downloadImage(url) {
-    const contentImgBox = document.body.querySelector('.content-img-box');
-    const contentFilename = contentImgBox.dataset.label;
+function downloadImage(url, content_label, style_label) {
     const link = document.createElement('a');
     link.href = url;
-    link.download = contentFilename.split('.')[0] + '_stylized.jpg'
+    link.download = content_label.split('.')[0] + ' + ' + style_label.split('.')[0] + '.jpg'
     document.body.appendChild(link);
     link.click();
     link.remove()
@@ -421,7 +419,7 @@ async function sendRequest() {
                 stylizedResultBox.appendChild(resultImageBox);
 
                 resultImageBox.addEventListener('click', e => {
-                    downloadImage(stylizedImageUrl);
+                    downloadImage(stylizedImageUrl, contentImgBox.dataset.label, selectedStyleElement.dataset.label);
                 })
 
                 // Copy selected style thumb
