@@ -2,7 +2,7 @@ from PIL import Image, ImageDraw, ImageFont
 from io import BytesIO
 
 
-async def resize_image(img: Image, max_size: int):
+def resize_image(img: Image, max_size: int):
     width, height = img.width, img.height
 
     if width > max_size or height > max_size:
@@ -27,7 +27,7 @@ def cut_into_chunks(lst, n):
 async def draw_number(image_path, index):
     with Image.open(image_path) as img:
         # Telegram resize images to 1280px on one side, used for correct drawing of number
-        img = await resize_image(img, 1280)
+        img = resize_image(img, 1280)
         w, h = img.size[0], img.size[1]
         numbered_img_io = BytesIO()
         draw = ImageDraw.Draw(img)

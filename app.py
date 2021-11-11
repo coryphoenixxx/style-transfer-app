@@ -7,7 +7,7 @@ from aiohttp import web
 from aiohttp.web_request import Request
 
 from bot.handlers import dp, bot
-from config import ADMIN_ID, STYLES_PATHS, CONTENTS_PATHS
+from config import ADMIN_ID, STYLES_PRESETS_PATHS, CONTENTS_PRESETS_PATHS
 from net.eval import eval
 
 
@@ -20,8 +20,8 @@ async def get_handler(request: Request):
 
 
 async def get_images_handler(request: Request):
-    images_urls = {'contents_urls': CONTENTS_PATHS,
-                   'styles_urls': STYLES_PATHS}
+    images_urls = {'contents_urls': CONTENTS_PRESETS_PATHS,
+                   'styles_urls': STYLES_PRESETS_PATHS}
     return web.json_response(images_urls)
 
 

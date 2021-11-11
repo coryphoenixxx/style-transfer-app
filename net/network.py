@@ -231,18 +231,22 @@ class Net(nn.Module):
 
 
 def create_network():
-    from config import START_ITER
+    from config import START_ITER, STATE_DICTS_DIR
+
     network = Net(vgg, decoder)
 
-    decoder.load_state_dict(torch.load(f'./state_dicts/decoder_iter_{START_ITER}.pth'))
-    network.transform.load_state_dict(torch.load(f'./state_dicts/transformer_iter_{START_ITER}.pth'))
+    if START_ITER > 0:
+        decoder.load_state_dict(torch.load(STATE_DICTS_DIR / f'decoder_iter_{START_ITER}.pth'))
+        network.transform.load_state_dict(torch.load(STATE_DICTS_DIR / f'transformer_iter_{START_ITER}.pth'))
 
     network.cuda()
 
     optimizer = torch.optim.Adam([
         {'params': network.decoder.parameters()},
         {'params': network.transform.parameters()}], lr=1e-4)
-    optimizer.load_state_dict(torch.load(f'./state_dicts/optimizer_iter_{START_ITER}.pth'))
+
+    if START_ITER > 0:
+        optimizer.load_state_dict(torch.load(STATE_DICTS_DIR / f'optimizer_iter_{START_ITER}.pth'))
 
     network.train()
 

@@ -14,7 +14,7 @@ from aiogram.utils.exceptions import MessageNotModified, MessageToEditNotFound, 
 
 from bot.keyboards import make_style_choice_kb, make_content_choice_kb, make_style_presets_kb, \
     make_content_presets_kb
-from config import IMAGES_DIR, STYLES_PATHS, CONTENTS_PATHS, API_TOKEN
+from config import IMAGES_DIR, STYLES_PRESETS_PATHS, CONTENTS_PRESETS_PATHS, API_TOKEN
 from net.eval import eval
 from utils import cut_into_chunks, draw_number
 
@@ -105,7 +105,7 @@ async def send_content_presets(call: CallbackQuery):
         await bot.delete_message(call.from_user.id, call.message.message_id)
 
     await call.message.answer("<b>❗ CONTENT PRESETS:</b>")
-    await form_and_send_media(call, CONTENTS_PATHS)
+    await form_and_send_media(call, CONTENTS_PRESETS_PATHS)
     await call.message.answer(text="<b>❗ Press the content image number.</b>",
                               reply_markup=await make_content_choice_kb())
 
@@ -115,7 +115,7 @@ async def get_selected_user_content(call: CallbackQuery, state: FSMContext):
     with suppress(*suppress_exceptions):
         await bot.delete_message(call.from_user.id, call.message.message_id)
 
-    user_content_choice = CONTENTS_PATHS[int(call.data[8:]) - 1]
+    user_content_choice = CONTENTS_PRESETS_PATHS[int(call.data[8:]) - 1]
 
     with Image.open(user_content_choice) as img:
         content_io = BytesIO()
@@ -123,7 +123,7 @@ async def get_selected_user_content(call: CallbackQuery, state: FSMContext):
         content_io.seek(0)
         await state.update_data(user_content=content_io)
 
-    await call.message.answer(text="<b>❗ Ok, I got it. Now send me a style image"
+    await call.message.answer(text="<b>❗ Ok, I got it. Now send me a style image "
                                    "or press for selection from the presets.</b>",
                               reply_markup=await make_style_presets_kb())
 
@@ -182,7 +182,7 @@ async def send_style_presets(call: CallbackQuery):
         await bot.delete_message(call.from_user.id, call.message.message_id)
 
     await call.message.answer("<b>❗ STYLE PRESETS:</b>")
-    await form_and_send_media(call, STYLES_PATHS)
+    await form_and_send_media(call, STYLES_PRESETS_PATHS)
     await call.message.answer(text="<b>❗ Press the style image number.</b>",
                               reply_markup=await make_style_choice_kb())
 
@@ -196,14 +196,14 @@ async def stylize_by_style_number(call: CallbackQuery, state: FSMContext):
 
     user_choice = call.data[6:]
 
-    user_style_number = random.choice(range(1, len(STYLES_PATHS)+1)) if user_choice == 'random' else int(user_choice)
+    user_style_number = random.choice(range(1, len(STYLES_PRESETS_PATHS) + 1)) if user_choice == 'random' else int(user_choice)
 
     await call.message.answer("<b>❗ I got it. Now wait...</b>")
 
     content_io = (await state.get_data()).get('user_content')
     await state.reset_data()
 
-    style_url = STYLES_PATHS[user_style_number-1]
+    style_url = STYLES_PRESETS_PATHS[user_style_number - 1]
     style_title = ' '.join(style_url.split('/')[-1].split('.')[:-1])
     await call.message.answer(text=f"<b>❗ + {style_title}</b>")
 
@@ -232,8 +232,8 @@ async def stylize_and_send_for_all_styles(call: CallbackQuery, state: FSMContext
     await state.reset_data()
 
     index = 1
-    amount = len(STYLES_PATHS)
-    for style_url in STYLES_PATHS:
+    amount = len(STYLES_PRESETS_PATHS)
+    for style_url in STYLES_PRESETS_PATHS:
         stylized_io = await eval(content_io, style_url)
         stylized_io.seek(0)
         style_title = ' '.join(style_url.split('/')[-1].split('.')[:-1])

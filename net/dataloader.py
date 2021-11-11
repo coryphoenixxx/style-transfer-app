@@ -4,10 +4,9 @@ import os
 from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms
 from PIL import Image
-from pathlib import Path
 from torch.utils import data
 
-from config import BATCH_SIZE, NUM_WORKERS
+from config import BATCH_SIZE, NUM_WORKERS, TRAIN_CONTENT_DIR, TRAIN_STYLE_DIR, TRAIN_RESIZE
 
 
 class FlatFolderDataset(Dataset):
@@ -16,8 +15,8 @@ class FlatFolderDataset(Dataset):
         self.root = folder
         self.paths = os.listdir(folder)
         self.transform = transforms.Compose([
-            transforms.Resize((256, 256)),
-            transforms.RandomCrop(128),
+            transforms.Resize((TRAIN_RESIZE, TRAIN_RESIZE)),
+            transforms.RandomCrop(TRAIN_RESIZE / 2),
             transforms.ToTensor()
         ])
 
@@ -55,17 +54,15 @@ class InfiniteSamplerWrapper(data.sampler.Sampler):
 
 
 def init_loaders():
-    content_folder = Path('train_images/content')
-    style_folder = Path('train_images/style')
-
-    content_dataset = FlatFolderDataset(content_folder)
-    style_dataset = FlatFolderDataset(style_folder)
+    content_dataset = FlatFolderDataset(TRAIN_CONTENT_DIR)
+    style_dataset = FlatFolderDataset(TRAIN_STYLE_DIR)
 
     content_iter = iter(DataLoader(dataset=content_dataset,
                                    batch_size=BATCH_SIZE,
                                    num_workers=NUM_WORKERS,
                                    pin_memory=True,
                                    sampler=InfiniteSamplerWrapper(content_dataset)))
+
     style_iter = iter(DataLoader(dataset=style_dataset,
                                  batch_size=BATCH_SIZE,
                                  num_workers=NUM_WORKERS,

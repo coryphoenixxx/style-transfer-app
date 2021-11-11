@@ -1,10 +1,12 @@
 import torch
-from net.dataloader import init_loaders
-from net.network import create_network
 import torch.backends.cudnn as cudnn
+
 from PIL import Image, ImageFile
 from tqdm import tqdm
-from config import START_ITER, MAX_ITER
+
+from net.dataloader import init_loaders
+from net.network import create_network
+from config import START_ITER, MAX_ITER, SAVE_ITER, STATE_DICTS_DIR
 
 cudnn.benchmark = True
 Image.MAX_IMAGE_PIXELS = None  # Disable DecompressionBombError
@@ -42,21 +44,21 @@ if __name__ == '__main__':
         loss.backward()
         optimizer.step()
 
-        if (i + 1) % 5000 == 0:
-            print(f"    LOSS: {avg_loss / 5000}")
+        if (i + 1) % SAVE_ITER == 0:
+            print(f"    LOSS: {avg_loss / SAVE_ITER}")
             avg_loss = 0
 
             state_dict = decoder.state_dict()
 
             for key in state_dict.keys():
                 state_dict[key] = state_dict[key].to(torch.device('cpu'))
-            torch.save(state_dict, f'./state_dicts/decoder_iter_{i + 1}.pth')
+            torch.save(state_dict, STATE_DICTS_DIR / f'decoder_iter_{i + 1}.pth')
 
             state_dict = network.transform.state_dict()
             for key in state_dict.keys():
                 state_dict[key] = state_dict[key].to(torch.device('cpu'))
-            torch.save(state_dict, f'./state_dicts/transformer_iter_{i + 1}.pth')
+            torch.save(state_dict, STATE_DICTS_DIR / f'transformer_iter_{i + 1}.pth')
 
             state_dict = optimizer.state_dict()
-            torch.save(state_dict, f'./state_dicts/optimizer_iter_{i + 1}.pth')
+            torch.save(state_dict, STATE_DICTS_DIR / f'optimizer_iter_{i + 1}.pth')
 
