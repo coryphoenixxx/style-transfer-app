@@ -4,9 +4,9 @@ import torch.backends.cudnn as cudnn
 from PIL import Image, ImageFile
 from tqdm import tqdm
 
-from net.dataloader import init_loaders
-from net.network import create_network
-from config import START_ITER, MAX_ITER, SAVE_ITER, STATE_DICTS_DIR
+from app.net.dataloader import init_loaders
+from app.net.network import create_network
+from app.config import START_ITER, MAX_ITER, SAVE_ITER, STATE_DICTS_DIR
 
 cudnn.benchmark = True
 Image.MAX_IMAGE_PIXELS = None  # Disable DecompressionBombError

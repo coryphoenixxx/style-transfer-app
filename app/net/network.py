@@ -231,7 +231,7 @@ class Net(nn.Module):
 
 
 def create_network():
-    from config import START_ITER, STATE_DICTS_DIR
+    from app.config import START_ITER, STATE_DICTS_DIR
 
     network = Net(vgg, decoder)
 

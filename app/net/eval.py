@@ -7,8 +7,8 @@ from PIL import Image
 from torchvision import transforms
 from torchvision.utils import save_image
 
-from utils import resize_image
-from config import MAX_IMAGE_SIZE, EVAL_ITER, STATE_DICTS_DIR
+from app.utils import resize_image
+from app.config import MAX_IMAGE_SIZE, EVAL_ITER, STATE_DICTS_DIR
 from .network import decoder, vgg, Transform
 
 

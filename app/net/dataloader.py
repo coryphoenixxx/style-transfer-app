@@ -6,7 +6,7 @@ from torchvision import transforms
 from PIL import Image
 from torch.utils import data
 
-from config import BATCH_SIZE, NUM_WORKERS, TRAIN_CONTENT_DIR, TRAIN_STYLE_DIR, TRAIN_RESIZE
+from app.config import BATCH_SIZE, NUM_WORKERS, TRAIN_CONTENT_DIR, TRAIN_STYLE_DIR, TRAIN_RESIZE
 
 
 class FlatFolderDataset(Dataset):

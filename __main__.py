@@ -6,9 +6,9 @@ import jinja2
 from aiohttp import web
 from aiohttp.web_request import Request
 
-from bot.handlers import dp, bot
-from config import ADMIN_ID, STYLES_PRESETS_PATHS, CONTENTS_PRESETS_PATHS
-from net.eval import eval
+from app.bot.handlers import dp, bot
+from app.config import ADMIN_ID, STYLES_PRESETS_PATHS, CONTENTS_PRESETS_PATHS
+from app.net.eval import eval
 
 
 routes = web.RouteTableDef()

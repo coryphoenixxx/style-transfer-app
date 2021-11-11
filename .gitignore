@@ -5,6 +5,7 @@
 __pycache__/
 *.py[cod]
 *$py.class
+**/.idea/workspace.xml **/.idea/tasks.xml
 
 # C extensions
 *.so
@@ -195,6 +196,3 @@ venv/Scripts/pythonw.exe
 venv/Scripts/sqlformat.exe
 venv/pyvenv.cfg
 staticfiles/
-!/.gitignore
-!/.gitignore
-!/.gitignore

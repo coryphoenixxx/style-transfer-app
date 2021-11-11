@@ -12,11 +12,11 @@ from aiogram.dispatcher.filters.state import StatesGroup, State
 from aiogram.types import MediaGroup, InputFile, Message, CallbackQuery
 from aiogram.utils.exceptions import MessageNotModified, MessageToEditNotFound, MessageCantBeEdited
 
-from bot.keyboards import make_style_choice_kb, make_content_choice_kb, make_style_presets_kb, \
+from app.bot.keyboards import make_style_choice_kb, make_content_choice_kb, make_style_presets_kb, \
     make_content_presets_kb
-from config import IMAGES_DIR, STYLES_PRESETS_PATHS, CONTENTS_PRESETS_PATHS, API_TOKEN
-from net.eval import eval
-from utils import cut_into_chunks, draw_number
+from app.config import IMAGES_DIR, STYLES_PRESETS_PATHS, CONTENTS_PRESETS_PATHS, API_TOKEN
+from app.net.eval import eval
+from app.utils import cut_into_chunks, draw_number
 
 from aiogram import Bot
 from aiogram.types import ParseMode
