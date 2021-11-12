@@ -13,7 +13,7 @@ Neural Network made on the basis of [this research article](https://arxiv.org/pd
 Tested on **Windows 8.1/10 + GTX 1080** and **UBUNTU 20.04.3 LTS (CPU only)**
 
 ### Local usage:
-* Сlone: `git clone https://github.com/coryphoenixxx/StyleTransferApp.git <your_project_dir>`;
+* Сlone: `git clone https://github.com/coryphoenixxx/style-transfer-app.git <your_project_dir>`;
 * Create virtual environment: `python -m venv venv`;
 * Activate it: 
   
