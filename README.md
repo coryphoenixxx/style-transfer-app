@@ -1,5 +1,5 @@
 # STYLE TRANSFER APP
-This is a asynchronous dual application (**web** + **Telegram bot**) for stylization images.
+This is an asynchronous dual application (**web** + **Telegram bot**) for stylization images.
 
 Neural Network made on the basis of [this research article](https://arxiv.org/pdf/1812.02342.pdf).
 
@@ -17,7 +17,7 @@ Tested on **Windows 8.1/10 + GTX 1080** and **UBUNTU 20.04.3 LTS (CPU only)**
 * Create virtual environment: `python -m venv venv`;
 * Activate it: 
   
-  `<path to/your_project_dir>\venv\Scripts\activate.bat` *(Windows)*;
+  `<your_project_dir>\venv\Scripts\activate.bat` *(Windows)*;
   
   or `source venv/bin/activate` *(Linux)*;
 * Install requirements: `pip install -r requirements.txt`;
