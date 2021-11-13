@@ -1,5 +1,5 @@
 # STYLE TRANSFER APP
-This is a dual application (**web** + **Telegram bot**) for stylization images.
+This is a asynchronous dual application (**web** + **Telegram bot**) for stylization images.
 
 Neural Network made on the basis of [this research article](https://arxiv.org/pdf/1812.02342.pdf).
 
